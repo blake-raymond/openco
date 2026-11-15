@@ -197,7 +197,7 @@ def _public_rules() -> list[str]:
     roadmap = (ROOT / "ROADMAP.md").read_text(encoding="utf-8")
     if "AGENTS.md" not in claude:
         errors.append("CLAUDE.md must point at AGENTS.md")
-    for phrase in ("before any task", "Do not overwrite", "facts.md", "EXAMPLE", "without approval"):
+    for phrase in ("before any task", "Do not overwrite", "facts.md", "EXAMPLE", "without approval", "Design principles", "Start from scratch"):
         if phrase not in agents:
             errors.append(f"AGENTS.md is missing {phrase!r}")
     for phrase in ("your data repo", "blake-raymond/openco", "templates/data", "make setup"):

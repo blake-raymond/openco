@@ -17,10 +17,11 @@ confirm the owner and name of your data repo, creates it private on
 GitHub, copies the template, pushes, and turns on checks. The company
 starts empty. Setup does not import an existing company.
 `scripts/export-notion` and `scripts/import-granola` stay optional extras.
-Then it offers Obsidian, Wispr Flow, and Granola or your agent, each
-only if you say yes, then memory, skill packs, and MCP. Run it again to
-resume. `make setup ARGS="--check"` shows what is done, what is missing,
-and the TODO list in your data repo.
+Then it walks every built step: Obsidian, Wispr Flow, and Granola or
+your agent, each only if you say yes, then memory, skill packs, MCP
+pages, and the fleet files. A step that is not built is named there and
+deferred. Run it again to resume. `make setup ARGS="--check"` shows what
+is done, what is deferred, and the TODO list in your data repo.
 
 The rest of this file is reference.
 
@@ -47,7 +48,7 @@ decisions link back to them. The public repo's check rejects a
 transcript committed here.
 
 `memory/` is the memory. [docs/setup/memory.md](docs/setup/memory.md)
-keeps claude-mem and mem0 as optional notes that were not verified.
+leaves claude-mem and mem0 deferred.
 Wispr Flow is the voice-notes app setup can install on macOS.
 [docs/setup/wispr.md](docs/setup/wispr.md). Granola is an optional call
 recorder, or you use your agent. The importer is not part of setup.

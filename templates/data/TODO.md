@@ -38,6 +38,9 @@ counts do not fail CI.
 - [ ] 11. Notes only you have
   Done: `facts.md` has a sourced line that came from your own note or call, not from a public page.
 
+- [ ] 12. Skill packs
+  Done: you either cloned the four pinned packs with setup, or you skipped that step. The clones are not committed.
+
 - [ ] 14. Workflows
   Done: `workflows.md` lists real workflows ranked by money made or saved.
 
@@ -47,11 +50,23 @@ counts do not fail CI.
 - [ ] 16. Skills
   Done: `skills/` has one skill generated from a recording, with When to use, Steps, Checks, and Mistakes.
 
+- [ ] 18. MCP
+  Done: for each server you use, you connected it from the official page setup printed, and any secret is only in `.env`. `config/mcp.example.json` is still empty.
+
+- [ ] 22. Orchestrator
+  Done: `projects.md` lists one real bot and what it owns. The EXAMPLE row does not count.
+
 - [ ] 25. Jobs
   Done: `jobs.md` has one real job with an owner, a budget, a cost, and a last result.
 
+- [ ] 26. Routines
+  Done: a routine you actually run is recorded with a prompt, a schedule, and a trigger, and it contains no secrets. The example routine does not count.
+
 - [ ] 30. Cost
   Done: that job's cost is filled in, and you can see whether it is above what it earns.
+
+- [ ] 33. Annoyances
+  Done: `tools/` has one internal tool written from a real annoyance, using the template.
 
 - [ ] 38. Learnings
   Done: `learnings/` has one dated file with what worked, what failed, and what to stop doing.

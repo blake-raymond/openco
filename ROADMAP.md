@@ -25,14 +25,12 @@ The examples shipped in the skeleton are marked EXAMPLE. Replace nothing; append
 
 ## Phase 2 — Brain and capture, steps 1–6, 9, and 11
 
-The repo side of these steps is in the phase 2 change: `templates/data`,
-the data-repo CI, `scripts/intake`, `scripts/import-granola`, and
-`docs/setup/`. What is still manual, or not verified by running the
-tool, is called out in those setup pages.
+`make setup` walks the built steps. A step that is not built is deferred
+inside that command. It is not a document you finish first.
 
-9. Give agents memory across sessions so they stop starting from zero. `memory/` is the memory for now. claude-mem and mem0 stay optional setup notes and were not run.
-10. Pipe ads, analytics, CRM, and payments into one warehouse agents can query (Airbyte into ClickHouse). Not built. It waits for real data.
-11. Feed that warehouse data nobody else has. That is the part a competitor cannot download. Intake is the route for notes and for Grok Bot transcripts. Granola remains optional. Keeping the folder fed is manual.
+9. Give agents memory across sessions so they stop starting from zero. `memory/` is the memory. claude-mem and mem0 are deferred. Setup does not install them.
+10. Pipe ads, analytics, CRM, and payments into one warehouse agents can query (Airbyte into ClickHouse). Not built. The wizard says so and does not ask you to install either tool.
+11. Feed that warehouse data nobody else has. Intake is the route for notes and for transcripts your agent writes. Importing an existing company is deferred. Filling the files is `TODO.md`.
 
 Step 10 stays later. Exports and warehouse credentials stay out of this public repo.
 

@@ -21,8 +21,43 @@ from openco.paths import ROOT, STATE, TEMPLATES
 
 PLACEHOLDER_NAME = "company-data"
 REQUIRED = ("prerequisites", "github-repo", "scaffold", "remote", "push", "ci")
-OPTIONAL = ("apps-notes", "apps-voice", "apps-calls", "memory", "skills", "mcp")
-STEPS = REQUIRED + OPTIONAL
+# Playbook order. Built pieces are wizard steps. Unbuilt pieces are deferred,
+# not documents you finish before this command.
+WALK = (
+    "second-brain",
+    "apps-notes",
+    "voice-notes",
+    "apps-voice",
+    "company-brain",
+    "apps-calls",
+    "facts",
+    "voice-file",
+    "history",
+    "instructions",
+    "memory",
+    "warehouse",
+    "unique-notes",
+    "skills",
+    "marketing-skills",
+    "workflows",
+    "mcp",
+    "later-tools",
+    "fleet",
+)
+STEPS = REQUIRED + WALK
+# Official pages read on 2026-11-15. No local package is installed from here.
+# PostHog's page documents one command; it is interactive, so setup prints it
+# and does not run it. Calendar has no verified page, so it is omitted.
+MCP_SERVERS = (
+    ("GitHub", "https://github.com/github/github-mcp-server", ""),
+    ("Gmail", "https://developers.google.com/workspace/gmail/api/guides/configure-mcp-server", ""),
+    ("Slack", "https://slack.com/help/articles/48855576908307-Guide-to-MCP-in-Slack", ""),
+    ("Notion", "https://developers.notion.com/guides/mcp/get-started-with-mcp", ""),
+    ("Linear", "https://linear.app/docs/mcp", ""),
+    ("Stripe", "https://docs.stripe.com/mcp", ""),
+    ("PostHog", "https://posthog.com/docs/model-context-protocol", "npx @posthog/wizard mcp add"),
+    ("Supabase", "https://supabase.com/docs/guides/ai-tools/mcp", ""),
+)
 FINISHED_APP = {"done", "agent", "link"}
 
 # Install commands checked against https://formulae.brew.sh/api/cask/<token>.json
@@ -123,11 +158,7 @@ def main(argv: list[str] | None = None, runner: Runner | None = None, input_fn=N
     _step_remote(state, dest, remote, yes, reader)
     _step_push(state, commands, dest, yes, reader)
     _step_ci(state, commands, owner, name, yes, reader)
-    print("This company starts empty. Nothing is imported.")
-    _offer_apps(state, yes, reader, commands)
-    _step_memory(state, yes, reader)
-    _step_skills(state, yes, with_skills, reader)
-    _step_mcp(state, yes, reader)
+    _walk_phases(state, yes, with_skills, reader, commands)
     save_state(state)
     print(f"Your data repo is {dest}")
     print('Run make setup again to resume. make setup ARGS="--check" reports status.')
@@ -308,6 +339,125 @@ def _step_ci(state, commands, owner, name, yes, reader) -> None:
     save_state(state)
 
 
+def _walk_phases(state, yes, with_skills, reader, commands: Runner) -> None:
+    """Every built phase is a step here. Filling the files in is the TODO list."""
+
+    state.setdefault("steps", {})
+    print("This company starts empty. Importing an existing company is deferred.")
+    _introduce(
+        state,
+        "second-brain",
+        "Step 1. The second brain is me/ in your data repo. You write it from scratch. "
+        "Notion import is deferred. TODO item 1.",
+    )
+    _maybe_install(state, "apps-notes", "notes", yes, reader, commands)
+    _introduce(
+        state,
+        "voice-notes",
+        "Step 2. Drop a voice note in inbox/ and run python3 scripts/intake from this checkout. TODO item 2.",
+    )
+    _maybe_install(state, "apps-voice", "voice", yes, reader, commands)
+    _introduce(
+        state,
+        "company-brain",
+        "Step 3. customers/, pricing.md, playbooks/, and decisions/ are already in your data repo. TODO item 3.",
+    )
+    _maybe_calls(state, yes, reader, commands)
+    _introduce(
+        state,
+        "facts",
+        "Step 5. facts.md is the only file an agent may cite. TODO item 5.",
+    )
+    _introduce(
+        state,
+        "voice-file",
+        "Step 6. voice.md has 50 best posts, 20 posts you hate, and words you never use. "
+        "The check counts them and does not fail while they are empty. TODO item 6.",
+    )
+    _introduce(
+        state,
+        "history",
+        "Step 7. This data repo is the history. Its check blocks edits of past dated entries. TODO item 7.",
+    )
+    _introduce(
+        state,
+        "instructions",
+        "Step 8. AGENTS.md in this public repo is the instruction file. Read it before a task. TODO item 8.",
+    )
+    _step_memory(state, yes, reader)
+    _defer(
+        state,
+        "warehouse",
+        "Step 10. A warehouse is not built. Setup does not ask you to install Airbyte or ClickHouse.",
+    )
+    _introduce(
+        state,
+        "unique-notes",
+        "Step 11. Notes only you have go through inbox/ and intake. Nothing is imported. TODO item 11.",
+    )
+    _step_skills(state, yes, with_skills, reader)
+    _defer(
+        state,
+        "marketing-skills",
+        "Step 13. Marketing skill packs are not part of setup. No install command is offered.",
+    )
+    _introduce(
+        state,
+        "workflows",
+        "Steps 14 to 16. workflows.md, recordings/, and skills/ are in your data repo. "
+        "python3 scripts/skill-from-recording turns one recording into a skill. TODO items 14, 15, and 16.",
+    )
+    _step_mcp(state, yes, reader)
+    _defer(
+        state,
+        "later-tools",
+        "Steps 19 and 20. A browser and a separate computer are not built. Setup does not install them.",
+    )
+    _introduce(
+        state,
+        "fleet",
+        "The orchestrator reads projects.md. jobs.md, routines/, tools/, and learnings/ are the fleet files. "
+        "TODO items 22, 25, 26, 30, 33, and 38.",
+    )
+
+
+def _introduce(state, step: str, line: str) -> None:
+    if state["steps"].get(step) == "done":
+        print(f"{step}: done")
+        return
+    print(line)
+    state["steps"][step] = "done"
+    save_state(state)
+
+
+def _defer(state, step: str, line: str) -> None:
+    if state["steps"].get(step) == "deferred":
+        print(f"{step}: deferred")
+        return
+    print(line)
+    state["steps"][step] = "deferred"
+    save_state(state)
+
+
+def _maybe_install(state, step: str, app: str, yes, reader, commands: Runner) -> None:
+    if yes:
+        state["steps"].setdefault(step, "skipped")
+        save_state(state)
+        print(f"Skipped {VERIFIED_APPS[app]['name']}. Re-run without --yes to install it.")
+        return
+    _step_install(state, step, app, reader, commands)
+
+
+def _maybe_calls(state, yes, reader, commands: Runner) -> None:
+    print("Step 4. Record calls with Granola, or use your agent and drop the transcript in calls/. TODO item 4.")
+    if yes:
+        state["steps"].setdefault("apps-calls", "skipped")
+        save_state(state)
+        print("Skipped the call recorder. Re-run without --yes to choose Granola or your agent.")
+        return
+    _step_calls_app(state, reader, commands)
+
+
 def _offer_apps(state, yes, reader, commands: Runner) -> None:
     state.setdefault("steps", {})
     if yes:
@@ -415,20 +565,36 @@ def _print_todo(record: dict) -> None:
 
 
 def ensure_todo(dest: Path) -> bool:
-    target = dest / "TODO.md"
-    if target.is_file():
-        return False
-    source = TEMPLATES / "TODO.md"
-    if not source.is_file():
+    source_path = TEMPLATES / "TODO.md"
+    if not source_path.is_file():
         raise OpencoError("templates/data/TODO.md is missing")
-    target.write_text(source.read_text(encoding="utf-8"), encoding="utf-8")
+    source = source_path.read_text(encoding="utf-8")
+    target = dest / "TODO.md"
+    if not target.is_file():
+        target.write_text(source, encoding="utf-8")
+        return True
+    current = target.read_text(encoding="utf-8")
+    missing = [block for block in _todo_blocks(source) if _todo_label(block) not in current]
+    if not missing:
+        return False
+    target.write_text(current.rstrip() + "\n\n" + "\n\n".join(missing) + "\n", encoding="utf-8")
     return True
+
+
+def _todo_blocks(text: str) -> list[str]:
+    parts = text.split("\n- [ ] ")
+    return ["- [ ] " + part.strip("\n") for part in parts[1:]]
+
+
+def _todo_label(block: str) -> str:
+    first = block.splitlines()[0]
+    return first.split("] ", 1)[-1]
 
 
 def _step_memory(state, yes, reader) -> None:
     if state["steps"].get("memory") == "done":
         return
-    print("Memory is the memory/ folder in your data repo. Nothing else to install.")
+    print("Step 9. Memory is the memory/ folder. claude-mem and mem0 are deferred. TODO item 9.")
     if yes or _confirm("Use memory/ as your memory?", False, reader):
         state["steps"]["memory"] = "done"
     else:
@@ -439,6 +605,8 @@ def _step_memory(state, yes, reader) -> None:
 def _step_skills(state, yes, with_skills, reader) -> None:
     if state["steps"].get("skills") == "done":
         print("Skill packs are already installed.")
+        return
+    if yes and state["steps"].get("skills") == "skipped":
         return
     print("Optional: clone the four pinned skill packs into skills/vendor/.")
     do_it = with_skills or (not yes and _confirm("Install skill packs now?", False, reader))
@@ -454,15 +622,32 @@ def _step_skills(state, yes, with_skills, reader) -> None:
 
 
 def _step_mcp(state, yes, reader) -> None:
-    if state["steps"].get("mcp") == "done":
+    if state["steps"].get("mcp") in {"done", "link"}:
+        print(f"mcp: {state['steps']['mcp']}")
         return
-    print("MCP secrets stay in .env. config/mcp.example.json leaves them empty. See docs/setup/mcp.md.")
-    if yes or not _confirm("Mark MCP setup done?", False, reader):
+    if yes and state["steps"].get("mcp") == "skipped":
+        return
+    print("Step 18. MCP servers are optional. Secrets stay in .env. config/mcp.example.json stays empty.")
+    print("Calendar has no verified install page. Setup does not guess one.")
+    if yes or not _confirm("Show the official MCP pages?", False, reader):
         state["steps"]["mcp"] = "skipped"
         save_state(state)
         return
-    state["steps"]["mcp"] = "done"
+    for line in mcp_lines():
+        print(line)
+    print("Setup does not run those commands. Connect a server from its official page. TODO item 18.")
+    state["steps"]["mcp"] = "link"
     save_state(state)
+
+
+def mcp_lines() -> list[str]:
+    lines = []
+    for name, link, command in MCP_SERVERS:
+        if command:
+            lines.append(f"{name}: {link} (verified command, not run: {command})")
+        else:
+            lines.append(f"{name}: {link}")
+    return lines
 
 
 def _confirm(prompt: str, yes: bool, reader) -> bool:
@@ -638,6 +823,11 @@ def wizard_selfcheck() -> list[str]:
                 errors.append("check mode did not report voice progress")
             if "export-notion" not in (dest / "TODO.md").read_text(encoding="utf-8"):
                 errors.append("TODO does not keep the importers off the main path")
+            if "second-brain: done" not in report or "warehouse: deferred" not in report:
+                errors.append("check mode did not walk the built and deferred steps")
+            if "- [ ] 18. MCP" not in report or "- [ ] 12. Skill packs" not in report:
+                errors.append("check mode did not read the phase 3 TODO items")
+            errors.extend(_mcp_link_selfcheck())
         errors.extend(_apps_selfcheck())
         errors.extend(_empty_voice_selfcheck())
     finally:
@@ -654,6 +844,21 @@ def wizard_selfcheck() -> list[str]:
                 os.environ.pop(key, None)
             else:
                 os.environ[key] = value
+    return errors
+
+
+def _mcp_link_selfcheck() -> list[str]:
+    errors: list[str] = []
+    lines = mcp_lines()
+    joined = "\n".join(lines)
+    if "curl" in joined or "docker" in joined or "mcp-remote" in joined:
+        errors.append("MCP steps guessed an install command")
+    npx_lines = [line for line in lines if "npx" in line]
+    if npx_lines != ["PostHog: https://posthog.com/docs/model-context-protocol (verified command, not run: npx @posthog/wizard mcp add)"]:
+        errors.append(f"unexpected MCP commands: {npx_lines}")
+    for _name, link, _command in MCP_SERVERS:
+        if link not in joined:
+            errors.append(f"MCP page missing from the wizard: {link}")
     return errors
 
 

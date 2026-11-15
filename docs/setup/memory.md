@@ -14,10 +14,11 @@ date: 2026-11-15
 One short paragraph. Company claims in here also belong in facts.md.
 ```
 
-## Optional tools
+## Deferred tools
 
-claude-mem and mem0 are not part of setup. They were not installed or
-verified here. If you try one later, keep writing `memory/` as well.
+claude-mem and mem0 are deferred. Setup does not install them, and you
+do not install them before `make setup`. They were not verified here.
+`memory/` stays the memory either way.
 
 Claude-Mem's introduction, read on 15 Nov 2026, says `npx claude-mem install`
 and lists Cursor among supported tools, then tells you to restart Claude
