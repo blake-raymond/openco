@@ -92,14 +92,13 @@ def file_note(data_repo: Path, note: Path) -> list[str]:
         written.append(_append(data_repo / "facts.md", f"- {date} | source: {source_rel} | {line}"))
     for line in _bullets(sections.get("stories", "")):
         written.append(_append(data_repo / "stories.md", f"- {date} | {line}"))
-    link = source_rel if in_calls or _is_transcript(meta) else ""
-    for slug, fields, entry_body in _decisions(sections.get("decisions", "")):
+    for slug, fields in _decisions(sections.get("decisions", "")):
         relative = f"decisions/{date}-{slug}.md"
         path = data_repo / relative
         if path.exists():
             raise OpencoError(f"{relative} already exists")
         path.write_text(
-            _decision_file(date, fields, entry_body, meta.get("example") is True, link),
+            _decision_file(date, fields, meta.get("example") is True, source_rel),
             encoding="utf-8",
         )
         written.append(relative)
@@ -210,25 +209,43 @@ def _copy_transcript(data_repo: Path, note: Path, text: str, date: str, meta: di
     return relative
 
 
-def _decision_file(date: str, fields: dict[str, str], body: str, example: bool, source: str = "") -> str:
+def _decision_file(date: str, fields: dict[str, str], example: bool, source: str) -> str:
+    status = fields.get("status") or "proposed"
     lines = [
         "---",
         f"date: {date}",
-        f"decision: {fields['decision']}",
-        f"why: {fields['why']}",
-        f"supersedes: {fields.get('supersedes', '')}",
+        f"status: {status}",
+        f"source: {source}",
     ]
-    if source:
-        lines.append(f"source: {source}")
     if example:
         lines.append("example: true")
-    lines.extend(["---", "", body.strip(), ""])
+    lines.extend(
+        [
+            "---",
+            "",
+            f"# {fields['decision']}",
+            "",
+            "## Context",
+            "",
+            fields["context"],
+            "",
+            "## Decision",
+            "",
+            fields["decision"],
+            "",
+            "## Why",
+            "",
+            fields["why"],
+            "",
+        ]
+    )
     return "\n".join(lines)
 
 
-def _decisions(section: str) -> list[tuple[str, dict[str, str], str]]:
+def _decisions(section: str) -> list[tuple[str, dict[str, str]]]:
     items = []
     chunks = re.split(r"(?m)^### ", section)
+    fields_ok = {"status", "context", "decision", "why"}
     for chunk in chunks[1:]:
         slug, _, rest = chunk.partition("\n")
         slug = slug.strip()
@@ -240,7 +257,7 @@ def _decisions(section: str) -> list[tuple[str, dict[str, str], str]]:
         for line in rest.splitlines():
             if not started and not line.strip():
                 continue
-            if not started and ":" in line and line.split(":", 1)[0] in {"decision", "why", "supersedes"}:
+            if not started and ":" in line and line.split(":", 1)[0] in fields_ok:
                 key, raw = line.split(":", 1)
                 fields[key] = raw.strip()
                 continue
@@ -248,8 +265,9 @@ def _decisions(section: str) -> list[tuple[str, dict[str, str], str]]:
             body.append(line)
         if "decision" not in fields or "why" not in fields:
             raise OpencoError(f"decision {slug} needs decision and why lines")
-        text = "\n".join(body).strip() or fields["decision"]
-        items.append((slug, fields, text))
+        if not fields.get("context"):
+            fields["context"] = "\n".join(body).strip() or f"Recorded in {slug}."
+        items.append((slug, fields))
     return items
 
 

@@ -35,16 +35,18 @@ What was said.
 ## Decisions
 
 ### keep-tea-time
+status: proposed
+context: Why this came up.
 decision: Keep the demo tea time
 why: The fictional staff takes a break then.
-supersedes:
-
-Keep the demo tea time at 16:00 example time.
 ```
 
-`date` is `YYYY-MM-DD`. A decision slug is lowercase. `supersedes` may
-be empty, or it may name the earlier decision file. Sections you do not
-need can be left out.
+`date` is `YYYY-MM-DD`. A decision slug is lowercase. `status` is
+`proposed`, `accepted`, or `superseded`. Intake writes one file,
+`decisions/YYYY-MM-DD-slug.md`, with sections for context, the
+decision, and why. The file's `source` is the note or the call. There
+is no combined decisions log. Sections you do not need can be left out,
+except a decision still needs `decision` and `why`.
 
 The fact line intake writes looks like:
 

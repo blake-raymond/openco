@@ -31,7 +31,9 @@ RECORD_DIRS = (
     "inbox",
     "inbox/filed",
 )
-DECISION_KEYS = ("date", "decision", "why", "supersedes")
+DECISION_KEYS = ("date", "status", "source")
+DECISION_STATUSES = {"proposed", "accepted", "superseded"}
+DECISION_SECTIONS = ("Context", "Decision", "Why")
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -174,8 +176,13 @@ def _record(root: Path, relative: str, require_example: bool) -> list[str]:
         errors.append(f"{relative}: front matter date must match the file name")
     if relative.startswith("decisions/"):
         for key in DECISION_KEYS:
-            if key not in meta:
+            if key not in meta or (key != "status" and meta.get(key) in ("", None)):
                 errors.append(f"{relative}: front matter missing {key}")
+        if "status" in meta and meta.get("status") not in DECISION_STATUSES:
+            errors.append(f"{relative}: status must be proposed, accepted, or superseded")
+        for heading in DECISION_SECTIONS:
+            if f"## {heading}" not in body and f"## {heading}\n" not in path.read_text(encoding="utf-8"):
+                errors.append(f"{relative}: missing section {heading}")
     elif "date" not in meta:
         errors.append(f"{relative}: front matter missing date")
     if require_example:

@@ -18,7 +18,7 @@ has been committed. CI rejects that.
 | `calls/` | One file per call or meeting |
 | `pricing.md` | Dated prices, each with a source |
 | `playbooks/` | One file per playbook |
-| `decisions/` | One file per decision: date, decision, why, supersedes |
+| `decisions/` | One file per decision: date, status, source, then context, decision, and why |
 | `facts.md` | One sayable fact per line, with a date and a source |
 | `stories.md` | Stories filed from notes |
 | `voice.md` | Best posts, hated posts, banned words |

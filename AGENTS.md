@@ -59,9 +59,12 @@ new dated file. Always date it.
 Lines in `facts.md`, `stories.md`, `pricing.md`, and `voice.md` stay
 as they were committed. A correction is a new line.
 
-A decision is a new file in `decisions/` with front matter `date`,
-`decision`, `why`, and `supersedes`. `supersedes` names the earlier
-file, or it is empty. Do not edit the earlier file.
+A decision is a new file, `decisions/YYYY-MM-DD-slug.md`. There is no
+combined decisions log. Front matter has `date`, `status`
+(`proposed`, `accepted`, or `superseded`), and `source` (one or more
+links, comma-separated). The body has `## Context`, `## Decision`, and
+`## Why`. Do not edit a decision file after it is committed. A change
+is a new file.
 
 Record files in `me/`, `customers/`, `calls/`, `playbooks/`, `memory/`,
 and `learnings/` use the file name `YYYY-MM-DD-slug.md` and the same
@@ -122,3 +125,4 @@ earlier line.
 - 2026-11-15: The second brain defaults to the Notion Commonplace book. `me/` is the fallback. Snapshot updates under `me/notion/` are allowed. Do not edit Notion without approval.
 - 2026-11-15: `memory/` is the memory. claude-mem and mem0 stay optional and unverified. Call transcripts are generic files in the private `calls/` folder. Grok Bot is the primary recorder. Granola is optional. Do not commit transcripts to this public repo.
 - 2026-11-15: Grok Bot is the orchestrator. projects.md lists bots. jobs.md tracks owner, budget, cost, and last result. A finished job appends worked, failed, and stop-doing to learnings/.
+- 2026-11-15: Each decision is its own file, decisions/YYYY-MM-DD-slug.md, with status, source, context, decision, and why. There is no decisions log.

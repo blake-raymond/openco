@@ -6,7 +6,7 @@ private repository, `openco-data` by default, is where real notes go.
 Never commit these to the public repository:
 
 - customers, calls, numbers, prices, or transcripts
-- the facts, voice, stories, or decisions logs once they contain real entries
+- the facts file, voice file, stories, or decision files once they contain real entries
 - proprietary skills
 - the second brain once it contains real notes
 - `.env` files, keys, tokens, or the `.openco/` pointer (it is gitignored)
