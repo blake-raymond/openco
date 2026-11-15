@@ -52,7 +52,7 @@ def main(argv: list[str] | None = None) -> int:
         if not quiet:
             print(f"this checkout points at it via {POINTER.relative_to(ROOT)}")
     if not quiet:
-        print("next: python3 scripts/ingest inbox/examples/2026-11-15-example-morning-note.md")
+        print("next: python3 scripts/intake")
     return 0
 
 

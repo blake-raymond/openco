@@ -8,30 +8,33 @@ The brain is markdown in the private `openco-data` git repository. A future back
 
 ## Phase 1 — Brain, steps 1–8
 
-Done here. `make setup` creates the private repo. `scripts/ingest` files notes. `scripts/validate` enforces dates, append-only history, and a secret scan. [AGENTS.md](AGENTS.md) is the instruction file.
+The scaffold is here. `make setup` creates the private repo. `scripts/intake` files notes as a pull request. `scripts/validate` and the data repo's own CI enforce dates, sources, and append-only history. [AGENTS.md](AGENTS.md) is the instruction file.
 
 | Step | What the playbook asks for | Where it lives |
 | --- | --- | --- |
-| 1 | A second brain: one folder of markdown on how you think, write, and decide (Obsidian). | `second-brain/` in openco-data. Open that folder as a vault. |
-| 2 | Voice notes through the day. An agent files every fact, story, and decision. | `inbox/` plus `scripts/ingest`. |
-| 3 | A company brain: customers, calls, numbers, pricing, playbooks, and past decisions with the reason. | `company-brain/` in openco-data. |
-| 4 | Record every call and meeting. Transcripts go straight into the brain. | Ingest writes `transcripts/`. |
-| 5 | A facts file: the only company claims an agent is allowed to say. | `facts/FACTS.md`. [AGENTS.md](AGENTS.md) requires a citation. |
-| 6 | A voice file: best posts (target 50), posts you hate (target 20), and words you never use. | `voice/best.md`, `voice/hate.md`, `voice/never-use.md`. The counts are the target, not a checker quota. |
-| 7 | Keep it in git so every change has history. | openco-data is its own git repo. Ingest commits there. This public repo's history is the setup only. |
+| 1 | A second brain: one folder of markdown on how you think, write, and decide (Obsidian). | `me/` in openco-data, and `.obsidian/` so the repo opens as a vault. |
+| 2 | Voice notes through the day. An agent files every fact, story, and decision. | `inbox/` plus `scripts/intake`, which opens a pull request. |
+| 3 | A company brain: customers, calls, numbers, pricing, playbooks, and past decisions with the reason. | `customers/`, `calls/`, `pricing.md`, `playbooks/`, `decisions/`. |
+| 4 | Record every call and meeting. Transcripts go straight into the brain. | `scripts/import-granola` writes `calls/`. The CSV column names are not documented, so the script takes a generic transcript. |
+| 5 | A facts file: the only company claims an agent is allowed to say. | `facts.md`, one dated line with a source. [AGENTS.md](AGENTS.md) requires a citation. |
+| 6 | A voice file: best posts (target 50), posts you hate (target 20), and words you never use. | `voice.md`. The em dash is the first banned word. The counts are the target, not a checker quota. |
+| 7 | Keep it in git so every change has history. | openco-data is its own git repo. Its CI blocks edits of past dated entries. This public repo's history is the setup only. |
 | 8 | One instruction file. Read it before any task, never overwrite, always date. | [AGENTS.md](AGENTS.md), with [CLAUDE.md](CLAUDE.md) pointing at it. |
 
 The examples shipped in the skeleton are marked EXAMPLE. Replace nothing; append real dated entries in the private repo.
 
-## Phase 2 — Rest of the brain, steps 9–11
+## Phase 2 — Brain and capture, steps 1–6, 9, and 11
 
-Not built. When it is, the scripts live in this repository and the data stays in openco-data. Exports and warehouse credentials stay gitignored.
+The repo side of these steps is in the phase 2 change: `templates/data`,
+the data-repo CI, `scripts/intake`, `scripts/import-granola`, and
+`docs/setup/`. What is still manual, or not verified by running the
+tool, is called out in those setup pages.
 
-9. Give agents memory across sessions so they stop starting from zero (claude-mem, mem0).
-10. Pipe ads, analytics, CRM, and payments into one warehouse agents can query (Airbyte into ClickHouse).
-11. Feed that warehouse data nobody else has. That is the part a competitor cannot download.
+9. Give agents memory across sessions so they stop starting from zero (claude-mem, mem0). The plain fallback is `memory/`. Tool install steps are documented and were not run.
+10. Pipe ads, analytics, CRM, and payments into one warehouse agents can query (Airbyte into ClickHouse). Not built. It waits for real data.
+11. Feed that warehouse data nobody else has. That is the part a competitor cannot download. Intake and the Granola importer are the repo-side routes for notes and calls. Keeping them fed is manual.
 
-Automation from this repo: an install note and a script per source, writing into a gitignored directory of the private repo. The public repo holds the script, not the export.
+Step 10 stays later. Exports and warehouse credentials stay out of this public repo.
 
 ## Phase 3 — Skills, steps 12–21
 

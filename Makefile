@@ -1,4 +1,4 @@
-.PHONY: setup check ingest
+.PHONY: setup check intake ingest
 
 setup:
 	python3 scripts/bootstrap $(ARGS)
@@ -6,5 +6,7 @@ setup:
 check:
 	python3 scripts/validate --selfcheck
 
-ingest:
-	python3 scripts/ingest $(FILE)
+intake:
+	python3 scripts/intake $(ARGS)
+
+ingest: intake

@@ -4,13 +4,14 @@ Public setup for running a company from markdown and git, following
 Greg Isenberg's [49-step playbook](https://x.com/gregisenberg/status/2121331227009364340).
 
 This repository is the part anyone can clone and get the same machine:
-the instruction file, the folder layout, the script that files notes,
-and the checks. The company itself — customers, calls, numbers, prices,
-transcripts, facts, voice, decisions, and the second brain — lives in a
-**private** git repository this setup creates. Nothing real is stored here.
-The files under `templates/openco-data/` are a fake example of that layout.
+the instruction file, the folder layout, the scripts that file notes,
+and the checks. The company itself lives in a **private** git
+repository this setup creates. Nothing real is stored here. The files
+under `templates/data/` are a fake example of that layout.
 
-Phase 1 is playbook steps 1–8. Later steps are listed in [ROADMAP.md](ROADMAP.md) and are not built yet.
+Phase 1 is the scaffold. Phase 2, on top of it, is the brain layout and
+the capture scripts for playbook steps 1–6, 9, and 11. Later steps are
+in [ROADMAP.md](ROADMAP.md).
 
 ## Set up
 
@@ -23,7 +24,7 @@ python3 scripts/validate --selfcheck
 make setup
 ```
 
-`make setup` creates `../openco-data`, copies the skeleton into it,
+`make setup` creates `../openco-data`, copies `templates/data` into it,
 makes the first commit, and writes the path to `.openco/data-repo`
 (gitignored). Use another path with either of these:
 
@@ -35,66 +36,69 @@ OPENCO_DATA_REPO=../my-openco-data make setup
 A relative path is resolved from this checkout, not from the shell's
 current directory. The destination must sit outside this repository.
 Setup will not overwrite a folder that is not already an openco-data
-checkout. Run it again and it leaves existing notes alone.
+checkout.
 
-Set `git config user.name` and `user.email` before setup. Those are the
-author on the private repo's commits. Setup does not create a GitHub
-remote. When you want one, create a **private** repository and add it
-from inside openco-data. See [docs/private-data.md](docs/private-data.md).
+Set `git config user.name` and `user.email` before setup. Setup does
+not create a GitHub remote. When you want intake to open pull requests,
+create a **private** repository, push `main` once, and add it as
+`origin`. See [docs/private-data.md](docs/private-data.md).
+
+Open the private repo folder as an Obsidian vault. `.obsidian/` is
+already there. `me/` is how you think, write, and decide.
 
 ## File a note
 
-The skeleton includes two fake notes. Filing one shows the path:
+The skeleton includes one fake inbox note.
 
 ```bash
-python3 scripts/ingest inbox/examples/2026-11-15-example-morning-note.md
+python3 scripts/intake
 ```
 
-Ingest copies the note into `transcripts/` in the private repo, appends
-its Facts, Stories, and Decisions to the logs, and commits there. A
-second run refuses, because those entries already exist. The note format
-is in [docs/ingestion.md](docs/ingestion.md).
+Intake appends facts and stories, writes decision files, and commits
+on a new branch. It does not commit to main. With an `origin` remote it
+opens a pull request. The note format is in
+[docs/ingestion.md](docs/ingestion.md). The agent instructions are in
+[skills/intake/SKILL.md](skills/intake/SKILL.md).
 
-Drop a real note in the private `inbox/voice-notes/` or
-`inbox/transcripts/` (those folders are gitignored) and pass that path
-to the same command.
+## Calls, voice, and memory
+
+- [docs/setup/granola.md](docs/setup/granola.md) and `python3 scripts/import-granola FILE`
+- [docs/setup/wispr.md](docs/setup/wispr.md)
+- [docs/setup/memory.md](docs/setup/memory.md)
+
+Granola's CSV export does not document its columns, so the importer
+reads a generic transcript and says so. Wispr, claude-mem, and mem0
+were not installed here.
 
 ## Rules agents follow
 
 [AGENTS.md](AGENTS.md) is the instruction file. [CLAUDE.md](CLAUDE.md)
-points at it. The rules that matter on every task:
+points at it.
 
-- Read `AGENTS.md` and the private `facts/FACTS.md` before making a company claim. Cite the entry. If it is not there, do not say it.
+- Read `AGENTS.md` and the private `facts.md` before making a company claim. Cite the line. If it is not there, do not say it.
 - Do not overwrite an entry. Append a dated one.
-- Always date headings as `## YYYY-MM-DD - slug`, or name a record file `YYYY-MM-DD-slug.md`.
+- Always date lines and record files.
 - Lines and files marked EXAMPLE are fake.
+- Intake does not commit to main.
 
 ## Layout
 
 ```text
 AGENTS.md                         instruction file
 CLAUDE.md                         pointer to AGENTS.md
-ROADMAP.md                        all 49 steps
-templates/openco-data/            skeleton copied into the private repo
-  second-brain/                   step 1, Obsidian vault
-  inbox/                          voice notes and transcripts waiting to be filed
-  transcripts/                    step 4, raw notes after filing
-  facts/FACTS.md                  step 5, the only sayable claims
-  stories/STORIES.md              stories filed from notes
-  voice/                          step 6, best posts, hated posts, unused words
-  company-brain/                  step 3
-    customers/ calls/ numbers/ pricing/ playbooks/
-    decisions/DECISIONS.md        decisions and why
-  skills/                         proprietary skills (private repo only)
-skills/example-make-tea/          one fake shareable skill, for the later publish step
-scripts/bootstrap                 make setup
-scripts/ingest                    file a note into the private repo
-scripts/validate                  dated entries, append-only history, no secrets
+templates/data/                   skeleton copied into the private repo
+  .obsidian/                      vault config, so the data repo opens in Obsidian
+  me/                             how you think, write, and decide
+  customers/  calls/  playbooks/  decisions/
+  pricing.md  facts.md  stories.md  voice.md
+  memory/  learnings/  inbox/
+  scripts/check.py                front matter, fact sources, append-only
+  .github/workflows/check.yml     CI for the private repo
+scripts/intake                    file inbox notes as a pull request
+scripts/import-granola            generic transcript to calls/
+skills/intake/                    skill for that filing step
+docs/setup/                       Wispr, Granola, memory
 ```
-
-Open `templates/openco-data/second-brain/` as an Obsidian vault to see
-the personal notes. In real use, open that folder inside openco-data
-instead. Company records do not go in the second brain.
 
 ## Checks
 
@@ -103,15 +107,10 @@ make check
 ```
 
 That runs `python3 scripts/validate --selfcheck`. It checks the public
-tree, builds a temporary openco-data repo, files the sample notes, and
-confirms that editing an old fact is rejected. On a pull request it
-also checks that committed logs only grow and that committed record
-files do not change.
-
-GitHub Actions runs the same command.
+tree and the template, builds a temporary openco-data repo, files the
+sample note onto a branch, and rejects an edit to an old fact.
 
 ## What this is not
 
-There is no database and no plugin layer. The brain is markdown plus
-git, which is step 7 of the playbook. A future backend could replace
-that. This phase does not add one.
+There is no database. The brain is markdown plus git. A future backend
+could replace that. This phase does not add one.

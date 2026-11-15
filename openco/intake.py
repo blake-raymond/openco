@@ -1,158 +1,233 @@
-"""File a voice note or meeting transcript into the private brain.
+"""File inbox notes into facts, stories, and decisions.
 
-The raw note is copied to transcripts/. Facts, stories, and decisions
-are appended to their logs. Existing entries are left untouched.
+The commit is always on a new branch. It is never made on main.
+A pull request is opened when the data repo has an origin remote.
 """
 
+from __future__ import annotations
+
+import os
 import re
-from datetime import datetime, timezone
+import shutil
+import subprocess
+import sys
 from pathlib import Path
 
+from openco.config import configured_data_repo
 from openco.errors import OpencoError
-from openco.format import parse_frontmatter, slug_in_log, valid_date
-from openco.gitutil import commit
+from openco.gitutil import commit, run
 
-_ENTRY_FIELDS = {"title", "category", "because"}
-_FIELD_LINE = re.compile(r"^([a-z_]+): (.*)$")
-_SLUG = re.compile(r"^[a-z][a-z0-9-]{2,63}$")
-_FACT_CATEGORIES = {"claim", "story", "number", "pricing"}
+_SLUG = re.compile(r"^[a-z0-9][a-z0-9-]{1,63}$")
+_DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
 
-def ingest_file(data_repo: Path, source: Path) -> list[str]:
-    text = source.read_text(encoding="utf-8")
-    if not text.endswith("\n"):
-        text += "\n"
-    try:
-        meta, body = parse_frontmatter(text)
-    except ValueError as exc:
-        raise OpencoError(f"{source.name}: {exc}") from exc
+def main(argv: list[str] | None = None) -> int:
+    args = argv if argv is not None else sys.argv[1:]
+    data_arg = None
+    no_pr = False
+    index = 0
+    while index < len(args):
+        item = args[index]
+        if item == "--data-repo":
+            index += 1
+            if index >= len(args):
+                raise OpencoError("--data-repo needs a path")
+            data_arg = args[index]
+        elif item == "--no-pr":
+            no_pr = True
+        else:
+            raise OpencoError(f"unknown argument {item}")
+        index += 1
+    data_repo = configured_data_repo(data_arg)
+    if data_repo is None or not data_repo.is_dir():
+        raise OpencoError("no private data repo. Run make setup or pass --data-repo.")
+    notes = _notes(data_repo)
+    if not notes:
+        print("nothing to file")
+        return 0
+    _require_clean(data_repo)
+    branch = _branch_name(notes)
+    run(data_repo, ["checkout", "-b", branch])
+    written: list[str] = []
+    for note in notes:
+        written.extend(file_note(data_repo, note))
+    commit(data_repo, f"File {len(notes)} inbox note(s)", written)
+    current = run(data_repo, ["rev-parse", "--abbrev-ref", "HEAD"]).stdout.strip()
+    if current in {"main", "master"}:
+        raise OpencoError("refusing to leave a commit on main")
+    print(f"committed on {current}")
+    if no_pr:
+        return 0
+    opened = open_pull_request(
+        data_repo,
+        current,
+        f"File {len(notes)} inbox note(s)",
+        "Filed by scripts/intake. Review the new fact lines before merging.\n",
+    )
+    if opened:
+        print("opened a pull request against main")
+    return 0
+
+
+def file_note(data_repo: Path, note: Path) -> list[str]:
+    text = note.read_text(encoding="utf-8")
+    meta, body = _frontmatter(text)
     date = meta.get("date")
-    key = meta.get("key")
-    kind = meta.get("kind")
-    if not isinstance(date, str) or not valid_date(date):
-        raise OpencoError(f"{source.name}: frontmatter date must be YYYY-MM-DD")
-    if not isinstance(key, str) or _SLUG.match(key) is None:
-        raise OpencoError(f"{source.name}: frontmatter key must be a lowercase slug")
-    if kind not in {"voice-note", "meeting"}:
-        raise OpencoError(f"{source.name}: kind must be voice-note or meeting")
-    _, sections = _sections(body)
-    planned = _plan(sections)
-    for log_rel, slug, _entry in planned:
-        log_path = data_repo / log_rel
-        if not log_path.is_file():
-            raise OpencoError(f"missing log {log_rel} in {data_repo}")
-        if slug_in_log(log_path.read_text(encoding="utf-8"), slug):
-            raise OpencoError(f"{slug} is already in {log_rel}")
-    transcript_rel = f"transcripts/{date}-{key}.md"
-    transcript_path = data_repo / transcript_rel
-    if transcript_path.exists():
-        raise OpencoError(f"{transcript_rel} already exists")
-    transcript_path.write_text(text, encoding="utf-8")
-    written = [transcript_rel]
-    filed = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    for log_rel, slug, block_body in planned:
-        block = _block(date, slug, block_body, transcript_rel, filed)
-        _append(data_repo / log_rel, block)
-        if log_rel not in written:
-            written.append(log_rel)
-    commit(data_repo, f"File {key} into the brain", written)
+    if not isinstance(date, str) or _DATE.match(date) is None:
+        raise OpencoError(f"{note.name}: front matter date must be YYYY-MM-DD")
+    sections = _sections(body)
+    filed_rel = f"inbox/filed/{note.name}"
+    filed_path = data_repo / filed_rel
+    if filed_path.exists():
+        raise OpencoError(f"{filed_rel} already exists")
+    written: list[str] = []
+    for line in _bullets(sections.get("facts", "")):
+        written.append(_append(data_repo / "facts.md", f"- {date} | source: {filed_rel} | {line}"))
+    for line in _bullets(sections.get("stories", "")):
+        written.append(_append(data_repo / "stories.md", f"- {date} | {line}"))
+    for slug, fields, entry_body in _decisions(sections.get("decisions", "")):
+        relative = f"decisions/{date}-{slug}.md"
+        path = data_repo / relative
+        if path.exists():
+            raise OpencoError(f"{relative} already exists")
+        path.write_text(_decision_file(date, fields, entry_body, meta.get("example") is True), encoding="utf-8")
+        written.append(relative)
+    filed_path.parent.mkdir(parents=True, exist_ok=True)
+    shutil.move(str(note), str(filed_path))
+    written.append(filed_rel)
+    old = f"inbox/{note.name}"
+    if run(data_repo, ["ls-files", "--", old]).stdout.strip():
+        written.append(old)
     return written
 
 
-def resolve_source(data_repo: Path, raw: str) -> Path:
-    direct = Path(raw)
-    if direct.is_file():
-        return direct
-    inside = data_repo / raw
-    if inside.is_file():
-        return inside
-    raise OpencoError(f"no such note: {raw}")
-
-
-def _plan(sections: dict[str, str]) -> list[tuple[str, str, str]]:
-    planned: list[tuple[str, str, str]] = []
-    seen: set[str] = set()
-    mapping = (
-        ("facts", "facts/FACTS.md", None),
-        ("stories", "stories/STORIES.md", "story"),
-        ("decisions", "company-brain/decisions/DECISIONS.md", "decision"),
+def open_pull_request(data_repo: Path, branch: str, title: str, body: str) -> bool:
+    remotes = run(data_repo, ["remote"]).stdout.split()
+    if "origin" not in remotes:
+        print(f"branch {branch} is ready. There is no origin remote, so no pull request was opened.")
+        return False
+    run(data_repo, ["push", "-u", "origin", branch])
+    env = os.environ.copy()
+    env["GIT_TERMINAL_PROMPT"] = "0"
+    result = subprocess.run(
+        ["gh", "pr", "create", "--base", "main", "--head", branch, "--title", title, "--body", body],
+        cwd=data_repo,
+        text=True,
+        capture_output=True,
+        env=env,
     )
-    for section_name, log_rel, forced in mapping:
-        for slug, fields, entry_body in _entries(sections.get(section_name, "")):
-            if slug in seen:
-                raise OpencoError(f"duplicate slug in the note: {slug}")
-            seen.add(slug)
-            if forced == "story":
-                fields["category"] = "story"
-            if forced == "decision" and "because" not in fields:
-                raise OpencoError(f"decision {slug} needs a because line")
-            if log_rel == "facts/FACTS.md":
-                category = fields.get("category", "claim")
-                if category not in _FACT_CATEGORIES:
-                    raise OpencoError(f"fact {slug} category must be claim, story, number, or pricing")
-                fields["category"] = category
-            planned.append((log_rel, slug, _entry_body(fields, entry_body)))
-    return planned
+    if result.returncode != 0:
+        detail = (result.stderr or result.stdout).strip()
+        raise OpencoError(detail or "gh pr create failed")
+    if result.stdout.strip():
+        print(result.stdout.strip())
+    return True
 
 
-def _entry_body(fields: dict[str, str], body: str) -> str:
-    lines = []
-    if "title" in fields:
-        lines.append(f"title: {fields['title']}")
-    if "category" in fields:
-        lines.append(f"category: {fields['category']}")
-    if "because" in fields:
-        lines.append(f"because: {fields['because']}")
-    if lines:
-        lines.append("")
-    lines.append(body.strip())
-    return "\n".join(lines).strip()
+def _notes(data_repo: Path) -> list[Path]:
+    inbox = data_repo / "inbox"
+    if not inbox.is_dir():
+        return []
+    return sorted(path for path in inbox.glob("*.md") if path.name != "README.md")
 
 
-def _block(date: str, slug: str, body: str, source: str, filed: str) -> str:
-    return f"\n## {date} - {slug}\n\n{body}\n\nsource: {source}\nfiled: {filed}\n"
+def _branch_name(notes: list[Path]) -> str:
+    if len(notes) == 1:
+        return "intake/" + notes[0].stem
+    return "intake/" + notes[0].stem[:10] + "-notes"
 
 
-def _append(path: Path, block: str) -> None:
+def _require_clean(data_repo: Path) -> None:
+    status = run(data_repo, ["status", "--porcelain"]).stdout.strip()
+    if status:
+        raise OpencoError("data repo has uncommitted changes. Commit or stash them before intake.")
+
+
+def _append(path: Path, line: str) -> str:
     text = path.read_text(encoding="utf-8")
+    if line in text.splitlines():
+        raise OpencoError(f"already filed: {line}")
     if not text.endswith("\n"):
         text += "\n"
-    path.write_text(text + block, encoding="utf-8")
+    path.write_text(text + line + "\n", encoding="utf-8")
+    return path.name if path.name != "DECISIONS.md" else str(path)
 
 
-def _sections(body: str) -> tuple[str, dict[str, str]]:
-    chunks = re.split(r"(?m)^## ", body)
-    sections: dict[str, str] = {}
-    for chunk in chunks[1:]:
-        name, _, rest = chunk.partition("\n")
-        sections[name.strip().casefold()] = rest
-    return chunks[0], sections
+def _decision_file(date: str, fields: dict[str, str], body: str, example: bool) -> str:
+    lines = [
+        "---",
+        f"date: {date}",
+        f"decision: {fields['decision']}",
+        f"why: {fields['why']}",
+        f"supersedes: {fields.get('supersedes', '')}",
+    ]
+    if example:
+        lines.append("example: true")
+    lines.extend(["---", "", body.strip(), ""])
+    return "\n".join(lines)
 
 
-def _entries(section: str) -> list[tuple[str, dict[str, str], str]]:
+def _decisions(section: str) -> list[tuple[str, dict[str, str], str]]:
     items = []
     chunks = re.split(r"(?m)^### ", section)
     for chunk in chunks[1:]:
         slug, _, rest = chunk.partition("\n")
         slug = slug.strip()
         if _SLUG.match(slug) is None:
-            raise OpencoError(f"entry slug is not lowercase kebab-case: {slug!r}")
+            raise OpencoError(f"decision slug is not lowercase kebab-case: {slug!r}")
         fields: dict[str, str] = {}
-        body_lines: list[str] = []
+        body: list[str] = []
         started = False
         for line in rest.splitlines():
-            match = _FIELD_LINE.match(line)
             if not started and not line.strip():
                 continue
-            if not started and match and match.group(1) in _ENTRY_FIELDS:
-                fields[match.group(1)] = match.group(2).strip()
+            if not started and ":" in line and line.split(":", 1)[0] in {"decision", "why", "supersedes"}:
+                key, raw = line.split(":", 1)
+                fields[key] = raw.strip()
                 continue
             started = True
-            body_lines.append(line)
-        if "title" not in fields:
-            raise OpencoError(f"entry {slug} needs a title line")
-        body = "\n".join(body_lines).strip()
-        if not body:
-            raise OpencoError(f"entry {slug} needs a body")
-        items.append((slug, fields, body))
+            body.append(line)
+        if "decision" not in fields or "why" not in fields:
+            raise OpencoError(f"decision {slug} needs decision and why lines")
+        text = "\n".join(body).strip() or fields["decision"]
+        items.append((slug, fields, text))
     return items
+
+
+def _bullets(section: str) -> list[str]:
+    bullets = []
+    for line in section.splitlines():
+        if line.startswith("- "):
+            text = line[2:].strip()
+            if text:
+                bullets.append(text)
+    return bullets
+
+
+def _sections(body: str) -> dict[str, str]:
+    chunks = re.split(r"(?m)^## ", body)
+    sections: dict[str, str] = {}
+    for chunk in chunks[1:]:
+        name, _, rest = chunk.partition("\n")
+        sections[name.strip().casefold()] = rest
+    return sections
+
+
+def _frontmatter(text: str) -> tuple[dict[str, object], str]:
+    if not text.startswith("---\n"):
+        raise OpencoError("inbox note must start with front matter")
+    end = text.find("\n---\n", 4)
+    if end < 0:
+        raise OpencoError("inbox note front matter is not closed")
+    meta: dict[str, object] = {}
+    for line in text[4:end].splitlines():
+        if not line.strip() or ":" not in line:
+            continue
+        key, raw = line.split(":", 1)
+        value: object = raw.strip()
+        if value == "true":
+            value = True
+        elif value == "false":
+            value = False
+        meta[key.strip()] = value
+    return meta, text[end + 5 :]

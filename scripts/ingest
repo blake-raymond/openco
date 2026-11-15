@@ -1,32 +1,16 @@
 #!/usr/bin/env python3
-"""File one voice note or transcript into the private data repository."""
+"""Old name for scripts/intake."""
 
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from openco.config import configured_data_repo
 from openco.errors import OpencoError
-from openco.intake import ingest_file, resolve_source
-
-
-def main() -> int:
-    if len(sys.argv) != 2:
-        raise OpencoError("usage: scripts/ingest NOTE.md")
-    data_repo = configured_data_repo()
-    if data_repo is None:
-        raise OpencoError("no private data repo. Run make setup or set OPENCO_DATA_REPO.")
-    if not data_repo.is_dir():
-        raise OpencoError(f"private data repo does not exist: {data_repo}")
-    written = ingest_file(data_repo, resolve_source(data_repo, sys.argv[1]))
-    print(f"filed into {data_repo}")
-    for item in written:
-        print(f"  {item}")
-    return 0
-
+from openco.intake import main
 
 if __name__ == "__main__":
+    print("scripts/ingest is now scripts/intake", file=sys.stderr)
     try:
         raise SystemExit(main())
     except OpencoError as exc:

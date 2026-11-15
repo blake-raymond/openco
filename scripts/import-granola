@@ -1,0 +1,17 @@
+#!/usr/bin/env python3
+"""Write a generic transcript into calls/ in the private data repo."""
+
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from openco.errors import OpencoError
+from openco.granola import main
+
+if __name__ == "__main__":
+    try:
+        raise SystemExit(main())
+    except OpencoError as exc:
+        print(str(exc), file=sys.stderr)
+        raise SystemExit(1)
