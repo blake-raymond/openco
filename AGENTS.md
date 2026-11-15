@@ -2,11 +2,11 @@
 
 Read this file before any task.
 
-openco is the public setup. The company brain lives in a private git
-repository, usually named `openco-data`. Find it in this order:
-
-1. `OPENCO_DATA_REPO`
-2. `.openco/data-repo` (written by `make setup`, not committed)
+openco is the public setup. The company brain lives in your data repo,
+the private git repository you named during `make setup`. Later scripts
+read that choice from `.openco/data-repo`, then the path in
+`.openco/setup-state.json`. `OPENCO_DATA_REPO` overrides both. None of
+those files are committed.
 
 If neither exists, do not invent company facts. Say that the data repo
 is not configured.
@@ -126,3 +126,4 @@ earlier line.
 - 2026-11-15: `memory/` is the memory. claude-mem and mem0 stay optional and unverified. Call transcripts are generic files in the private `calls/` folder. Grok Bot is the primary recorder. Granola is optional. Do not commit transcripts to this public repo.
 - 2026-11-15: Grok Bot is the orchestrator. projects.md lists bots. jobs.md tracks owner, budget, cost, and last result. A finished job appends worked, failed, and stop-doing to learnings/.
 - 2026-11-15: Each decision is its own file, decisions/YYYY-MM-DD-slug.md, with status, source, context, decision, and why. There is no decisions log.
+- 2026-11-15: `make setup` asks you to name your data repo and its owner. There is no built-in repository name. The choice is stored locally and is not committed.

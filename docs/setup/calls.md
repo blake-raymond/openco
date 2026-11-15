@@ -1,13 +1,12 @@
 # Calls
 
-Grok Bot joins meetings and writes the transcript. That is the primary
-path. Any other recorder or agent can drop the same file. Granola is
-optional and is not the default. See [granola.md](granola.md).
+Setup tells you this in one line and does not install a recorder.
+Grok Bot is the one that joins meetings. You drop the transcript it
+writes into your data repo.
 
-The full raw transcript is stored only in the private data repo, under
-`calls/`, as `YYYY-MM-DD-slug.md`. Do not edit it after it is committed.
-Do not commit a transcript to the public openco repository. The privacy
-scan rejects one.
+The full raw transcript stays only in your data repo, under `calls/`,
+as `YYYY-MM-DD-slug.md`. Do not edit it after it is committed. Do not
+commit a transcript to the public openco repository.
 
 ## Generic transcript
 
@@ -36,22 +35,10 @@ why: The fictional staff is only there during that window.
 ```
 
 `date` is `YYYY-MM-DD`. `title` is one line. `kind` is `transcript`.
-Each speaker turn is `Name: words`. Facts and decisions are optional.
-When they are present, intake copies them out and points their source
-at the call file.
+Each speaker turn is `Name: words`.
 
-## Where to drop it
+Drop the file in `calls/` or in `inbox/`. Then run `python3 scripts/intake`
+from this checkout. Intake stores the full text in `calls/` and points
+facts and decisions at that file. It commits on a branch, not on main.
 
-- `calls/YYYY-MM-DD-slug.md` in the private repo. The file is already
-  the stored transcript. Intake will not change it. If it contains
-  Facts or Decisions sections, intake appends those and links them back.
-- `inbox/YYYY-MM-DD-slug.md` with `kind: transcript`. Intake copies the
-  whole file into `calls/` and then files the extracted lines.
-
-From the public checkout:
-
-```bash
-python3 scripts/intake
-```
-
-Intake commits on a new branch. It does not commit to main.
+Granola is optional. See [granola.md](granola.md).

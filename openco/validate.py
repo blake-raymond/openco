@@ -53,6 +53,9 @@ def run_selfcheck() -> list[str]:
         errors.append("privacy scan allowed a transcript path")
     if transcript_finding("docs/setup/calls.md", "---\nkind: transcript\n---\n") is not None:
         errors.append("privacy scan flagged the calls setup doc")
+    from openco.setup_wizard import wizard_selfcheck
+
+    errors.extend(wizard_selfcheck())
     errors.extend(_notion_checks())
     errors.extend(_skill_from_recording_check())
     try:
@@ -71,7 +74,7 @@ def run_selfcheck() -> list[str]:
     try:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            dest = root / "openco-data"
+            dest = root / "data-repo"
             bootstrap_main(["--dest", str(dest), "--example-identity", "--no-pointer", "--quiet"])
             bare = root / "origin.git"
             subprocess.run(["git", "init", "--bare", "-b", "main", str(bare)], check=True, capture_output=True)
@@ -197,9 +200,13 @@ def _public_rules() -> list[str]:
     for phrase in ("before any task", "Do not overwrite", "facts.md", "EXAMPLE", "without approval"):
         if phrase not in agents:
             errors.append(f"AGENTS.md is missing {phrase!r}")
-    for phrase in ("openco-data", "blake-raymond/openco", "templates/data"):
+    for phrase in ("your data repo", "blake-raymond/openco", "templates/data", "make setup"):
         if phrase not in readme:
             errors.append(f"README.md is missing {phrase}")
+    banned = "openco-" + "data"
+    for relative in ("README.md", "AGENTS.md", "ROADMAP.md", "docs/private-data.md", ".env.example"):
+        if banned in (ROOT / relative).read_text(encoding="utf-8"):
+            errors.append(f"{relative} still hardcodes a data repo name")
     old_repo = "blake-raymond/" + "company"
     if old_repo in readme or old_repo in roadmap:
         errors.append("docs still name the old GitHub repository")

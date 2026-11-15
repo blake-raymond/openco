@@ -1,29 +1,17 @@
 # Wispr Flow
 
-Wispr Flow is the voice dictation tool named in the playbook. This page
-is the repo-side setup. It does not install Wispr for you.
+Setup does not install Wispr. You use it when you want voice notes,
+then you drop the markdown into your data repo.
 
-## What was checked
+The iOS help page, read on 15 Nov 2026, says Copy and Share send raw
+Markdown. It does not write into a git folder.
 
-The iOS help page [Using Notes in Wispr Flow for iOS](https://docs.wisprflow.ai/articles/3529886556-using-notes-in-wispr-flow-for-ios)
-was read on 15 Nov 2026. It says Scratchpad notes can be copied or
-shared, and that Copy and Share send raw Markdown, not formatted
-output. That page does not describe writing notes into a git folder.
-
-## What to do
-
-1. Dictate the note in Wispr Flow.
+1. Dictate the note.
 2. Copy the raw Markdown.
-3. Save it as a new file in the private repo's `inbox/`, named
-   `YYYY-MM-DD-slug.md`, with `date` in the front matter. The note shape
-   is in [docs/ingestion.md](../ingestion.md).
-4. From the public openco checkout, run `python3 scripts/intake`.
-5. Review the pull request. Intake does not commit to main.
+3. Save it in your data repo as `inbox/YYYY-MM-DD-slug.md`, with `date`
+   in the front matter. The shape is in [docs/ingestion.md](../ingestion.md).
+4. From this checkout, run `python3 scripts/intake`.
 
-## Not verified here
-
-Desktop Scratchpad, Notetaker "Copy as Markdown", and any third-party
-exporter that reads Wispr's local database were not installed or fully
-read for this change. Do not point a database exporter at the data repo
-until you have checked that tool yourself. The supported path in this
-repo is: copy Markdown into `inbox/`, then run intake.
+Desktop Scratchpad and Notetaker were not fully checked here. Do not
+point a third-party database exporter at your data repo until you have
+checked that tool yourself.

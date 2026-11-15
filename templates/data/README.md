@@ -1,7 +1,8 @@
-# openco-data
+# Your data repo
 
-Private data for [openco](https://github.com/blake-raymond/openco). Keep this
-repository private. Do not push it to the public openco repository.
+Private notes for [openco](https://github.com/blake-raymond/openco). Setup
+creates this repository under the name you confirm. Keep it private. Do
+not push it to the public openco repository.
 
 Open this folder as an Obsidian vault. `.obsidian/` is the vault config.
 `me/` is how you think, write, and decide. The other folders are the
