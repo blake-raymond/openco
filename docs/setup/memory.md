@@ -1,14 +1,8 @@
-# Agent memory
+# Memory
 
-Playbook step 9 is memory across sessions. This repo does not install a
-memory product. It gives you a plain folder, and names two tools whose
-docs were read but not run.
-
-## Plain fallback
-
-`memory/` in the private data repo is markdown any agent can read.
-Before a task, read the latest file there. When a session ends, add a
-new dated file. Do not edit an old one.
+`memory/` in the private data repo is the memory. Read the latest file
+there at the start of a session. When a session ends, add a new dated
+file. Do not edit an old one.
 
 ```markdown
 ---
@@ -20,48 +14,29 @@ date: 2026-11-15
 One short paragraph. Company claims in here also belong in facts.md.
 ```
 
-This needs no account and no daemon. It is the path that works today.
+This needs no account and no daemon. It is the path to use now.
 
-## claude-mem
+## Optional tools
+
+claude-mem and mem0 are not installed and were not verified here. Do
+not switch the memory to either of them unless you have tried it
+yourself. Keep writing `memory/` even if you experiment.
+
+### claude-mem
 
 [Claude-Mem's introduction](https://docs.claude-mem.ai/introduction) was
 read on 15 Nov 2026. It says the tool works with Claude Code, Codex,
-Cursor, OpenCode, and 11 more agents, and that the install command is:
+Cursor, OpenCode, and 11 more agents, and that the install command is
+`npx claude-mem install`. Inside Claude Code it also documents the
+plugin marketplace commands. The page says to restart Claude Code, and
+lists Cursor among supported IDEs. That Cursor claim was not checked
+in this repo.
 
-```bash
-npx claude-mem install
-```
-
-Inside Claude Code it also documents:
-
-```text
-/plugin marketplace add thedotmack/claude-mem
-/plugin install claude-mem
-```
-
-The same page says to restart Claude Code, and lists Cursor among
-supported IDEs. It was not installed for this change, and it was not
-checked inside Cursor. Treat the Cursor claim as documented by that
-project, not as something this repo has verified.
-
-If you install it, keep using `memory/` as well until a new session
-actually resumes without a re-brief.
-
-## mem0
+### mem0
 
 Mem0's Claude Code plugin page, [docs.mem0.ai/integrations/claude-code](https://docs.mem0.ai/integrations/claude-code),
-describes a Claude Code plugin that needs a Mem0 API key and:
+describes a Claude Code plugin that needs a Mem0 API key. It was not
+installed here. This repo does not claim it works in Cursor or Grok Bot.
 
-```bash
-claude plugin marketplace add mem0ai/mem0
-claude plugin install mem0@mem0-plugins --scope user --config api_key="$MEM0_API_KEY"
-```
-
-That page was not installed or re-run here. It is written for Claude
-Code. This repo does not claim it works in Cursor or Grok Bot.
-
-## What not to do
-
-Do not put API keys in the data repo or in this public repo. Do not
-treat a memory tool's recall as a fact. If it is something an agent is
-allowed to say about the company, it has to be a line in `facts.md`.
+Do not put API keys in either repository. Do not treat a memory tool's
+recall as a fact. A company claim still has to be a line in `facts.md`.

@@ -15,7 +15,7 @@ The scaffold is here. `make setup` creates the private repo. `scripts/intake` fi
 | 1 | A second brain: one folder of markdown on how you think, write, and decide (Obsidian). | Notion is the default (Commonplace book). `me/` is the markdown fallback, with `.obsidian/` so the data repo opens as a vault. `scripts/export-notion` snapshots pages to `me/notion/`. |
 | 2 | Voice notes through the day. An agent files every fact, story, and decision. | `inbox/` plus `scripts/intake`, which opens a pull request. |
 | 3 | A company brain: customers, calls, numbers, pricing, playbooks, and past decisions with the reason. | `customers/`, `calls/`, `pricing.md`, `playbooks/`, `decisions/`. |
-| 4 | Record every call and meeting. Transcripts go straight into the brain. | `scripts/import-granola` writes `calls/`. The CSV column names are not documented, so the script takes a generic transcript. |
+| 4 | Record every call and meeting. Transcripts go straight into the brain. | Grok Bot is the primary recorder. A generic transcript drops into private `inbox/` or `calls/`. Full text stays in `calls/` and is not edited later. Granola is an optional importer. The public repo rejects a committed transcript. |
 | 5 | A facts file: the only company claims an agent is allowed to say. | `facts.md`, one dated line with a source. [AGENTS.md](AGENTS.md) requires a citation. |
 | 6 | A voice file: best posts (target 50), posts you hate (target 20), and words you never use. | `voice.md`. The em dash is the first banned word. The counts are the target, not a checker quota. |
 | 7 | Keep it in git so every change has history. | openco-data is its own git repo. Its CI blocks edits of past dated entries. This public repo's history is the setup only. |
@@ -30,9 +30,9 @@ the data-repo CI, `scripts/intake`, `scripts/import-granola`, and
 `docs/setup/`. What is still manual, or not verified by running the
 tool, is called out in those setup pages.
 
-9. Give agents memory across sessions so they stop starting from zero (claude-mem, mem0). The plain fallback is `memory/`. Tool install steps are documented and were not run.
+9. Give agents memory across sessions so they stop starting from zero. `memory/` is the memory for now. claude-mem and mem0 stay optional setup notes and were not run.
 10. Pipe ads, analytics, CRM, and payments into one warehouse agents can query (Airbyte into ClickHouse). Not built. It waits for real data.
-11. Feed that warehouse data nobody else has. That is the part a competitor cannot download. Intake and the Granola importer are the repo-side routes for notes and calls. Keeping them fed is manual.
+11. Feed that warehouse data nobody else has. That is the part a competitor cannot download. Intake is the route for notes and for Grok Bot transcripts. Granola remains optional. Keeping the folder fed is manual.
 
 Step 10 stays later. Exports and warehouse credentials stay out of this public repo.
 

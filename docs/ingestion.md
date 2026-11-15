@@ -53,3 +53,8 @@ The fact line intake writes looks like:
 ```
 
 The source is required. CI fails a fact line that has no source.
+
+A meeting transcript uses the same sections, with `kind: transcript`.
+Intake stores the full raw file under `calls/` and points the facts and
+decisions at that file. The format is in [docs/setup/calls.md](setup/calls.md).
+Do not commit a transcript to this public repository.

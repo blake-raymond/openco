@@ -1,54 +1,28 @@
-# Granola
+# Granola (optional)
 
-Granola is the call recorder named in the playbook. This page is the
-repo-side setup. It does not install Granola or call its API.
+Granola is not the default call recorder. Grok Bot is. The transcript
+that gets stored is the generic file in [calls.md](calls.md), whoever
+produced it.
+
+If you already have a Granola export, `scripts/import-granola` can turn
+a generic transcript into `calls/YYYY-MM-DD-slug.md` in the private
+data repo. It does not commit. Put that file on a branch. Do not commit
+it to main, and do not commit it to the public openco repository.
 
 ## What was checked
 
 [Exporting notes](https://docs.granola.ai/help-center/sharing/exporting-notes)
-was read on 15 Nov 2026. The documented export is:
+was read on 15 Nov 2026. The documented export is a CSV from Settings,
+then Profile, then Generate CSV. It includes the title, the note
+summary, the transcript, and other details, for notes you own that
+have a summary. The page does not name the CSV columns, so the script
+does not parse that file.
 
-1. Click the workspace name, then Settings.
-2. Open Settings, then Profile, then Generate CSV.
-3. Granola emails a download link. The link lasts 24 hours, and an
-   account can generate one export every 24 hours.
-4. The CSV includes the title, the note summary, the transcript, and
-   other basic details, for notes you own that have a summary.
+The public API documents transcript items with speaker, text, start
+time, and end time. This script does not call that API.
 
-The page does not name the CSV columns. `scripts/import-granola` does
-not guess them. If you pass it a CSV, it stops and points you here.
-
-The public API documents a transcript as a list of items with speaker,
-text, start time, and end time. This script does not call that API.
-
-## Generic transcript
-
-Until the CSV columns are written down, save a meeting as this
-markdown and pass the file to the importer:
-
-```markdown
----
-date: 2026-11-15
-title: Demo call
----
-
-Alex Example: The demo company answers calls from 09:00 to 17:00.
-
-Sam Sample: That is the whole fictional meeting.
-```
-
-`date` is `YYYY-MM-DD`. `title` is one line. Each speaker turn is
-`Name: words`.
-
-From the public openco checkout:
+Pass the generic transcript from [calls.md](calls.md):
 
 ```bash
 python3 scripts/import-granola path/to/transcript.md
 ```
-
-That writes `calls/YYYY-MM-DD-slug.md` in the private data repo. It
-does not commit. Put the file on a branch and open a pull request.
-Do not commit it to main.
-
-A fact that quotes the call still has to be a line in `facts.md` whose
-source is that call file. Intake does not read `calls/` by itself.

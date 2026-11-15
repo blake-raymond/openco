@@ -71,27 +71,44 @@ def main(argv: list[str] | None = None) -> int:
 
 def file_note(data_repo: Path, note: Path) -> list[str]:
     text = note.read_text(encoding="utf-8")
+    if not text.endswith("\n"):
+        text += "\n"
     meta, body = _frontmatter(text)
     date = meta.get("date")
     if not isinstance(date, str) or _DATE.match(date) is None:
         raise OpencoError(f"{note.name}: front matter date must be YYYY-MM-DD")
     sections = _sections(body)
-    filed_rel = f"inbox/filed/{note.name}"
-    filed_path = data_repo / filed_rel
-    if filed_path.exists():
-        raise OpencoError(f"{filed_rel} already exists")
+    in_calls = note.parent.name == "calls"
+    if in_calls:
+        source_rel = f"calls/{note.name}"
+    elif _is_transcript(meta):
+        source_rel = _copy_transcript(data_repo, note, text, date, meta)
+    else:
+        source_rel = f"inbox/filed/{note.name}"
     written: list[str] = []
+    if not in_calls and _is_transcript(meta):
+        written.append(source_rel)
     for line in _bullets(sections.get("facts", "")):
-        written.append(_append(data_repo / "facts.md", f"- {date} | source: {filed_rel} | {line}"))
+        written.append(_append(data_repo / "facts.md", f"- {date} | source: {source_rel} | {line}"))
     for line in _bullets(sections.get("stories", "")):
         written.append(_append(data_repo / "stories.md", f"- {date} | {line}"))
+    link = source_rel if in_calls or _is_transcript(meta) else ""
     for slug, fields, entry_body in _decisions(sections.get("decisions", "")):
         relative = f"decisions/{date}-{slug}.md"
         path = data_repo / relative
         if path.exists():
             raise OpencoError(f"{relative} already exists")
-        path.write_text(_decision_file(date, fields, entry_body, meta.get("example") is True), encoding="utf-8")
+        path.write_text(
+            _decision_file(date, fields, entry_body, meta.get("example") is True, link),
+            encoding="utf-8",
+        )
         written.append(relative)
+    if in_calls:
+        return written
+    filed_rel = f"inbox/filed/{note.name}"
+    filed_path = data_repo / filed_rel
+    if filed_path.exists():
+        raise OpencoError(f"{filed_rel} already exists")
     filed_path.parent.mkdir(parents=True, exist_ok=True)
     shutil.move(str(note), str(filed_path))
     written.append(filed_rel)
@@ -125,10 +142,31 @@ def open_pull_request(data_repo: Path, branch: str, title: str, body: str) -> bo
 
 
 def _notes(data_repo: Path) -> list[Path]:
+    notes: list[Path] = []
     inbox = data_repo / "inbox"
-    if not inbox.is_dir():
-        return []
-    return sorted(path for path in inbox.glob("*.md") if path.name != "README.md")
+    if inbox.is_dir():
+        notes.extend(path for path in sorted(inbox.glob("*.md")) if path.name != "README.md")
+    calls = data_repo / "calls"
+    if calls.is_dir():
+        linked = _linked_calls(data_repo)
+        for path in sorted(calls.glob("*.md")):
+            if path.name == "README.md":
+                continue
+            text = path.read_text(encoding="utf-8")
+            if "## Facts" not in text and "## Decisions" not in text and "## Stories" not in text:
+                continue
+            if f"calls/{path.name}" in linked:
+                continue
+            notes.append(path)
+    return notes
+
+
+def _linked_calls(data_repo: Path) -> str:
+    parts = [(data_repo / "facts.md").read_text(encoding="utf-8")]
+    decisions = data_repo / "decisions"
+    if decisions.is_dir():
+        parts.extend(path.read_text(encoding="utf-8") for path in decisions.glob("*.md"))
+    return "\n".join(parts)
 
 
 def _branch_name(notes: list[Path]) -> str:
@@ -153,7 +191,26 @@ def _append(path: Path, line: str) -> str:
     return path.name if path.name != "DECISIONS.md" else str(path)
 
 
-def _decision_file(date: str, fields: dict[str, str], body: str, example: bool) -> str:
+def _is_transcript(meta: dict[str, object]) -> bool:
+    return meta.get("kind") in {"transcript", "meeting"}
+
+
+def _copy_transcript(data_repo: Path, note: Path, text: str, date: str, meta: dict[str, object]) -> str:
+    title = str(meta.get("title") or note.stem)
+    slug = re.sub(r"[^a-z0-9]+", "-", title.casefold()).strip("-")
+    slug = re.sub(r"-{2,}", "-", slug)[:60].strip("-")
+    if _SLUG.match(slug or "") is None:
+        raise OpencoError(f"{note.name}: transcript title did not produce a file name")
+    relative = f"calls/{date}-{slug}.md"
+    path = data_repo / relative
+    if path.exists():
+        raise OpencoError(f"{relative} already exists")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(text, encoding="utf-8")
+    return relative
+
+
+def _decision_file(date: str, fields: dict[str, str], body: str, example: bool, source: str = "") -> str:
     lines = [
         "---",
         f"date: {date}",
@@ -161,6 +218,8 @@ def _decision_file(date: str, fields: dict[str, str], body: str, example: bool) 
         f"why: {fields['why']}",
         f"supersedes: {fields.get('supersedes', '')}",
     ]
+    if source:
+        lines.append(f"source: {source}")
     if example:
         lines.append("example: true")
     lines.extend(["---", "", body.strip(), ""])

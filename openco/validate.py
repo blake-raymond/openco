@@ -14,7 +14,7 @@ from openco.errors import OpencoError
 from openco.granola import convert
 from openco.intake import main as intake_main
 from openco.paths import ROOT, TEMPLATES
-from openco.scan import scan_file, scan_text
+from openco.scan import scan_file, scan_text, transcript_finding
 
 CHECK = TEMPLATES / "scripts" / "check.py"
 
@@ -49,6 +49,10 @@ def run_selfcheck() -> list[str]:
         errors.append("scanner flagged an example.com address")
     if not scan_text("sample.txt", "write to person@" + "realco.test\n"):
         errors.append("scanner missed a non-example address")
+    if transcript_finding("calls/2026-11-15-demo.md", "hello") is None:
+        errors.append("privacy scan allowed a transcript path")
+    if transcript_finding("docs/setup/calls.md", "---\nkind: transcript\n---\n") is not None:
+        errors.append("privacy scan flagged the calls setup doc")
     errors.extend(_notion_checks())
     try:
         converted, _markdown = convert(_generic_transcript())
@@ -82,6 +86,23 @@ def run_selfcheck() -> list[str]:
             env = os.environ.copy()
             env["PATH"] = str(bin_dir) + os.pathsep + env.get("PATH", "")
             env["GH_LOG"] = str(gh_log)
+            (dest / "inbox" / "2026-11-15-example-call.md").write_text(
+                "---\n"
+                "date: 2026-11-15\n"
+                "title: Example call\n"
+                "kind: transcript\n"
+                "example: true\n"
+                "---\n\n"
+                "Alex Example: EXAMPLE transcript line.\n\n"
+                "## Facts\n\n"
+                "- EXAMPLE: the demo call lasted 0 minutes.\n\n"
+                "## Decisions\n\n"
+                "### example-keep-window\n"
+                "decision: EXAMPLE keep the window\n"
+                "why: The fictional staff is only there then.\n"
+                "supersedes:\n",
+                encoding="utf-8",
+            )
             result = subprocess.run(
                 [sys.executable, str(ROOT / "scripts" / "intake"), "--data-repo", str(dest)],
                 cwd=ROOT,
@@ -107,6 +128,15 @@ def run_selfcheck() -> list[str]:
             story = "- 2026-11-15 | EXAMPLE: Alex Example at Demo Cafe asked for a sample widget."
             if story not in (dest / "stories.md").read_text(encoding="utf-8"):
                 errors.append("intake did not append the story")
+            call = dest / "calls" / "2026-11-15-example-call.md"
+            call_text = call.read_text(encoding="utf-8") if call.is_file() else ""
+            if "EXAMPLE transcript line." not in call_text:
+                errors.append("intake did not store the raw transcript in calls/")
+            if "source: calls/2026-11-15-example-call.md" not in facts:
+                errors.append("intake did not link the fact back to the transcript")
+            decision = (dest / "decisions" / "2026-11-15-example-keep-window.md").read_text(encoding="utf-8")
+            if "source: calls/2026-11-15-example-call.md" not in decision:
+                errors.append("intake did not link the decision back to the transcript")
             history = _run_check(["--root", str(dest)])
             if history:
                 errors.extend(history)

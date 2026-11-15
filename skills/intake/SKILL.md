@@ -5,7 +5,9 @@ description: File notes from the private data repo inbox into facts, stories, an
 
 # File inbox notes
 
-Use this when a note is sitting in the private data repo's `inbox/`.
+Use this when a note or a call transcript is sitting in the private data repo's `inbox/` or `calls/`.
+
+A transcript (`kind: transcript`) is copied in full to `calls/YYYY-MM-DD-slug.md`. Facts and decisions from it use that file as their source. Do not edit the call file later, and do not copy it into the public openco repository.
 
 ## Steps
 

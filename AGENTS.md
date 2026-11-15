@@ -18,7 +18,7 @@ Before a task that touches the company, read:
 - this file
 - `facts.md` in the private repo
 - `voice.md` when the task is writing in the founder's voice
-- the latest file in `memory/` when you need the last session
+- the latest file in `memory/` before you continue a session. That folder is the memory. Do not install another memory tool for this.
 - [docs/ingestion.md](docs/ingestion.md) when the task files an inbox note
 
 ## Second brain
@@ -42,7 +42,7 @@ Before you state a fact about the company, its customers, its numbers,
 or its prices, cite the `facts.md` line it came from. A line looks like:
 
 ```text
-- 2026-11-15 | source: calls/2026-11-15-example-seed.md | EXAMPLE: ...
+- 2026-11-15 | source: calls/YYYY-MM-DD-slug.md | EXAMPLE: ...
 ```
 
 Cite the date and the source. If the sentence is not a line in that
@@ -66,6 +66,11 @@ file, or it is empty. Do not edit the earlier file.
 Record files in `me/`, `customers/`, `calls/`, `playbooks/`, `memory/`,
 and `learnings/` use the file name `YYYY-MM-DD-slug.md` and the same
 date in front matter. After one is committed, leave it alone.
+
+Full call transcripts live only in the private repo under `calls/`.
+They are dated and are not edited later. Facts and decisions taken from
+a call use that call file as their source. Do not commit a transcript
+to this public repository.
 
 ## Filing notes
 
@@ -97,3 +102,4 @@ earlier line.
 - 2026-11-15: Initial phase 1 instructions. The brain is markdown in the private git repo. This public repo is the setup and the checks.
 - 2026-11-15: Phase 2 layout. Facts are lines in facts.md. Decisions are files under decisions/ with date, decision, why, and supersedes. Intake opens a pull request and does not commit to main.
 - 2026-11-15: The second brain defaults to the Notion Commonplace book. `me/` is the fallback. Snapshot updates under `me/notion/` are allowed. Do not edit Notion without approval.
+- 2026-11-15: `memory/` is the memory. claude-mem and mem0 stay optional and unverified. Call transcripts are generic files in the private `calls/` folder. Grok Bot is the primary recorder. Granola is optional. Do not commit transcripts to this public repo.

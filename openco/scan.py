@@ -1,8 +1,12 @@
-"""Secret and contact-detail checks for text that would be committed.
+"""Secret, contact-detail, and transcript checks for the public repo.
 
 Example-domain addresses are allowed so docs can talk about the rule.
 The patterns live here as expressions; the self-check builds sample
 values at runtime so this file does not contain a real-looking secret.
+
+Transcripts belong in the private data repo. A markdown file under
+calls/, or a file whose own front matter says it is a transcript, is
+rejected here. Docs may describe the format without being that file.
 """
 
 import re
@@ -25,8 +29,34 @@ _RULES: list[tuple[str, re.Pattern[str]]] = [
 _EMAIL_OK = {"example.com", "example.org", "example.net"}
 
 
+def transcript_finding(relative: str, text: str) -> str | None:
+    """Return an error if this public-repo path is a transcript."""
+
+    rel = relative.replace("\\", "/")
+    name = rel.rsplit("/", 1)[-1]
+    parent = rel.rsplit("/", 1)[0] if "/" in rel else ""
+    if (parent == "calls" or parent.endswith("/calls")) and name.endswith(".md") and name != "README.md":
+        return f"{relative}: transcripts belong in the private data repo, not openco"
+    if rel.startswith("docs/"):
+        return None
+    if not text.startswith("---\n"):
+        return None
+    end = text.find("\n---\n", 4)
+    if end < 0:
+        return None
+    front = text[4:end]
+    if re.search(r"(?m)^kind:\s*(transcript|meeting)\s*$", front):
+        return f"{relative}: transcripts belong in the private data repo, not openco"
+    if re.search(r"(?m)^source:\s*(generic-transcript|granola)\s*$", front):
+        return f"{relative}: transcripts belong in the private data repo, not openco"
+    return None
+
+
 def scan_text(path: str, text: str) -> list[str]:
     findings: list[str] = []
+    transcript = transcript_finding(path, text)
+    if transcript:
+        findings.append(transcript)
     for name, pattern in _RULES:
         for match in pattern.finditer(text):
             if name == "email" and match.group(1).lower() in _EMAIL_OK:

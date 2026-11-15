@@ -64,13 +64,17 @@ opens a pull request. The note format is in
 
 ## Calls, voice, and memory
 
-- [docs/setup/granola.md](docs/setup/granola.md) and `python3 scripts/import-granola FILE`
-- [docs/setup/wispr.md](docs/setup/wispr.md)
-- [docs/setup/memory.md](docs/setup/memory.md)
+Grok Bot writes call transcripts. Drop that generic file in the private
+repo's `inbox/` or `calls/`. The format is [docs/setup/calls.md](docs/setup/calls.md).
+Full transcripts stay in the private `calls/` folder. Facts and
+decisions link back to them. The public repo's check rejects a
+transcript committed here.
 
-Granola's CSV export does not document its columns, so the importer
-reads a generic transcript and says so. Wispr, claude-mem, and mem0
-were not installed here.
+`memory/` is the memory. [docs/setup/memory.md](docs/setup/memory.md)
+keeps claude-mem and mem0 as optional notes that were not verified.
+Wispr setup is [docs/setup/wispr.md](docs/setup/wispr.md). Granola is an
+optional importer, [docs/setup/granola.md](docs/setup/granola.md), not
+the default.
 
 ## Rules agents follow
 
@@ -96,10 +100,10 @@ templates/data/                   skeleton copied into the private repo
   memory/  learnings/  inbox/
   scripts/check.py                front matter, fact sources, append-only
   .github/workflows/check.yml     CI for the private repo
-scripts/intake                    file inbox notes as a pull request
-scripts/import-granola            generic transcript to calls/
+scripts/intake                    file inbox notes and transcripts as a pull request
+scripts/import-granola            optional Granola path, not the default
 skills/intake/                    skill for that filing step
-docs/setup/                       Wispr, Granola, memory
+docs/setup/                       calls, Wispr, memory, Notion, optional Granola
 ```
 
 ## Checks
