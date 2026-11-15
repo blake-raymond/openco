@@ -100,8 +100,13 @@ templates/data/                   skeleton copied into the private repo
   memory/  learnings/  inbox/
   scripts/check.py                front matter, fact sources, append-only
   .github/workflows/check.yml     CI for the private repo
+scripts/install-skills            clone the four pinned skill packs
 scripts/intake                    file inbox notes and transcripts as a pull request
+scripts/skill-from-recording      turn one recording into a private skill PR
 scripts/import-granola            optional Granola path, not the default
+routines/                         prompt, schedule, and trigger for each routine
+tools/                            template for a tool that removes an annoyance
+config/mcp.example.json           MCP shape, secrets left empty
 skills/intake/                    skill for that filing step
 docs/setup/                       calls, Wispr, memory, Notion, optional Granola
 ```

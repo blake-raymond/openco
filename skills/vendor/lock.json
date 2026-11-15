@@ -1,0 +1,30 @@
+{
+  "pinned": "2026-11-15",
+  "note": "Install with scripts/install-skills. The trees are not committed.",
+  "repos": [
+    {
+      "name": "anthropics-skills",
+      "url": "https://github.com/anthropics/skills.git",
+      "sha": "1780c5e5a552fd4d1c9d6a7b0cab26b0c2bef064",
+      "contains": "20 SKILL.md files. Examples Claude can load: documents (docx, pdf, pptx, xlsx), mcp-builder, frontend-design, skill-creator, webapp-testing, brand guidelines, canvas design."
+    },
+    {
+      "name": "superpowers",
+      "url": "https://github.com/obra/superpowers.git",
+      "sha": "22f0b463e7a5e579904dd6211a520321035526f7",
+      "contains": "15 SKILL.md files. A development methodology: brainstorming, writing-plans, executing-plans, test-driven-development, systematic-debugging, git worktrees, subagent-driven-development, code review, writing-skills."
+    },
+    {
+      "name": "mattpocock-skills",
+      "url": "https://github.com/mattpocock/skills.git",
+      "sha": "5863806dd4e15c63174bee4e7515a4256792ecfa",
+      "contains": "39 SKILL.md files, including engineering (tdd, grill-me, diagnosing-bugs, implement, to-spec), productivity (grilling, handoff), plus in-progress and deprecated."
+    },
+    {
+      "name": "agent-skills",
+      "url": "https://github.com/addyosmani/agent-skills.git",
+      "sha": "39b723ceebf81474d0557c1fecd01eddab585563",
+      "contains": "25 SKILL.md files across the build lifecycle: spec, planning, incremental implementation, test-driven development, code review, shipping, security, performance, CI, and docs."
+    }
+  ]
+}

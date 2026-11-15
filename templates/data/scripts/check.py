@@ -19,7 +19,18 @@ FACT_LINE = re.compile(r"^- (\d{4}-\d{2}-\d{2}) \| source: ([^|]+?) \| (\S.*)$")
 POST_LINE = re.compile(r"^- (\d{4}-\d{2}-\d{2}) \| (\S.*)$")
 RECORD_NAME = re.compile(r"^(\d{4}-\d{2}-\d{2})-([a-z0-9][a-z0-9-]{1,63})\.md$")
 GROWING = ("facts.md", "stories.md", "pricing.md", "voice.md")
-RECORD_DIRS = ("me", "customers", "calls", "playbooks", "decisions", "memory", "learnings", "inbox", "inbox/filed")
+RECORD_DIRS = (
+    "me",
+    "customers",
+    "calls",
+    "playbooks",
+    "decisions",
+    "memory",
+    "learnings",
+    "recordings",
+    "inbox",
+    "inbox/filed",
+)
 DECISION_KEYS = ("date", "decision", "why", "supersedes")
 
 
@@ -62,6 +73,7 @@ def check_format(root: Path, require_example: bool) -> list[str]:
         errors.append("voice.md: missing")
     for relative in _records(root):
         errors.extend(_record(root, relative, require_example))
+    errors.extend(_phase3_templates(root))
     return errors
 
 
@@ -246,6 +258,35 @@ def _date(value: str) -> bool:
     except ValueError:
         return False
     return True
+
+
+def _phase3_templates(root: Path) -> list[str]:
+    errors = []
+    required = {
+        "workflows.md": ("Workflow", "Hours spent", "Value"),
+        "jobs.md": ("Job", "Owner", "Budget", "Cost", "Last result"),
+        "projects.md": ("Bot", "Owns"),
+    }
+    for name, columns in required.items():
+        path = root / name
+        if not path.is_file():
+            errors.append(f"{name}: missing")
+            continue
+        text = path.read_text(encoding="utf-8")
+        for column in columns:
+            if column not in text:
+                errors.append(f"{name}: missing column {column}")
+    learning = root / "learnings" / "README.md"
+    if not learning.is_file():
+        errors.append("learnings/README.md: missing")
+    else:
+        text = learning.read_text(encoding="utf-8")
+        for heading in ("Worked", "Failed", "Stop doing"):
+            if heading not in text:
+                errors.append(f"learnings/README.md: missing {heading}")
+    if not (root / "recordings" / "README.md").is_file():
+        errors.append("recordings/README.md: missing")
+    return errors
 
 
 def _exempt(relative: str) -> bool:

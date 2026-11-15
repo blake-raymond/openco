@@ -1,4 +1,4 @@
-.PHONY: setup check intake ingest
+.PHONY: setup check intake ingest install-skills
 
 setup:
 	python3 scripts/bootstrap $(ARGS)
@@ -10,3 +10,6 @@ intake:
 	python3 scripts/intake $(ARGS)
 
 ingest: intake
+
+install-skills:
+	python3 scripts/install-skills $(ARGS)

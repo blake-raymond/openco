@@ -1,0 +1,65 @@
+{
+  "mcpServers": {
+    "github": {
+      "command": "",
+      "args": [],
+      "env": {
+        "GITHUB_TOKEN": ""
+      }
+    },
+    "gmail": {
+      "command": "",
+      "args": [],
+      "env": {
+        "GMAIL_CREDENTIALS": ""
+      }
+    },
+    "calendar": {
+      "command": "",
+      "args": [],
+      "env": {}
+    },
+    "slack": {
+      "command": "",
+      "args": [],
+      "env": {
+        "SLACK_TOKEN": ""
+      }
+    },
+    "notion": {
+      "command": "",
+      "args": [],
+      "env": {
+        "NOTION_TOKEN": ""
+      }
+    },
+    "linear": {
+      "command": "",
+      "args": [],
+      "env": {
+        "LINEAR_API_KEY": ""
+      }
+    },
+    "stripe": {
+      "command": "",
+      "args": [],
+      "env": {
+        "STRIPE_SECRET_KEY": ""
+      }
+    },
+    "posthog": {
+      "command": "",
+      "args": [],
+      "env": {
+        "POSTHOG_API_KEY": ""
+      }
+    },
+    "supabase": {
+      "command": "",
+      "args": [],
+      "env": {
+        "SUPABASE_ACCESS_TOKEN": ""
+      }
+    }
+  }
+}

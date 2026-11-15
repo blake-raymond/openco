@@ -83,10 +83,28 @@ python3 scripts/intake
 Intake opens a pull request. It does not commit to main. See
 [skills/intake/SKILL.md](skills/intake/SKILL.md).
 
+## Orchestrator
+
+Grok Bot is the always-on orchestrator. It reads `projects.md` in the
+private data repo. Each row is a bot and what that bot owns. Grok Bot
+keeps the list. It does not have to do the job itself.
+
+`jobs.md` is the fleet log: job, owner, budget, cost, and last result.
+When a job finishes, update the cost and the last result, then add a
+new dated file in `learnings/` using the shape in `learnings/README.md`:
+what worked, what failed, and what to stop doing. Do not edit an older
+learning.
+
+Routines live in `routines/` in this public repo, one file each, with a
+prompt, a schedule, and a trigger, so an orchestrator can recreate them.
+Do not put secrets in a routine.
+
 ## Skills
 
-Shareable skills live in `skills/` in this repository. Do not copy
-private notes here.
+Shareable skills live in `skills/` in this repository. Skills drafted
+from a recording go to `skills/` in the private data repo first. Do not
+copy private notes here. `scripts/install-skills` fetches the pinned
+packs into `skills/vendor/`. Those clones stay uncommitted.
 
 ## Private data
 
@@ -103,3 +121,4 @@ earlier line.
 - 2026-11-15: Phase 2 layout. Facts are lines in facts.md. Decisions are files under decisions/ with date, decision, why, and supersedes. Intake opens a pull request and does not commit to main.
 - 2026-11-15: The second brain defaults to the Notion Commonplace book. `me/` is the fallback. Snapshot updates under `me/notion/` are allowed. Do not edit Notion without approval.
 - 2026-11-15: `memory/` is the memory. claude-mem and mem0 stay optional and unverified. Call transcripts are generic files in the private `calls/` folder. Grok Bot is the primary recorder. Granola is optional. Do not commit transcripts to this public repo.
+- 2026-11-15: Grok Bot is the orchestrator. projects.md lists bots. jobs.md tracks owner, budget, cost, and last result. A finished job appends worked, failed, and stop-doing to learnings/.
