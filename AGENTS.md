@@ -2,14 +2,23 @@
 
 Read this file before any task.
 
-openco is the public setup. The company brain lives in a private git
-repository, usually named `openco-data`. Find it in this order:
-
-1. `OPENCO_DATA_REPO`
-2. `.openco/data-repo` (written by `make setup`, not committed)
+openco is the public setup. The company brain lives in your data repo,
+the private git repository you named during `make setup`. Later scripts
+read that choice from `.openco/data-repo`, then the path in
+`.openco/setup-state.json`. `OPENCO_DATA_REPO` overrides both. None of
+those files are committed.
 
 If neither exists, do not invent company facts. Say that the data repo
 is not configured.
+
+## Design principles
+
+These apply to every phase, including the ones already in this repo.
+
+1. One command. Someone clones this repo and runs `make setup`. That walk is the whole setup. Each phase adds steps to the wizard. A step is not a document the person has to finish before the wizard.
+2. Optional installs. When a step needs an app, the wizard offers to install it, and the person can say no. If the install command is not verified, the wizard prints the official page and does not guess a package.
+3. A TODO list. The wizard leaves `TODO.md` in the data repo. Every step that needs something filled in has an item there, with what done looks like. `make setup ARGS="--check"` reads that list.
+4. Start from scratch. The company starts empty. Importing an existing company is deferred.
 
 ## Read before acting
 
@@ -23,16 +32,13 @@ Before a task that touches the company, read:
 
 ## Second brain
 
-The second brain is a Notion database. Here that database is the
-Commonplace book. Before a task about how Blake thinks, writes, or
-decides, read it through the Notion MCP or the Notion API. Never edit
-it without approval.
+The second brain starts empty. It is `me/` in the data repo. Before a
+task about how the founder thinks, writes, or decides, read those notes.
+The files shipped in `me/` are examples. Do not cite one as a company fact.
 
-If `NOTION_TOKEN` and `NOTION_SECOND_BRAIN_DB` are unset, or
-`SECOND_BRAIN=markdown`, read `me/` in the private data repo instead.
-The notes shipped in `me/` are examples, not the Commonplace book.
-`scripts/export-notion` only reads Notion and writes a snapshot under
-`me/notion/`. See [docs/setup/notion-second-brain.md](docs/setup/notion-second-brain.md).
+Importing an existing Notion database is deferred. `scripts/export-notion`
+is not a setup step. If a later choice connects Notion, never edit that
+database without approval. See [docs/setup/notion-second-brain.md](docs/setup/notion-second-brain.md).
 
 Entries marked EXAMPLE are fake. Do not cite one as a company fact.
 
@@ -126,3 +132,6 @@ earlier line.
 - 2026-11-15: `memory/` is the memory. claude-mem and mem0 stay optional and unverified. Call transcripts are generic files in the private `calls/` folder. Grok Bot is the primary recorder. Granola is optional. Do not commit transcripts to this public repo.
 - 2026-11-15: Grok Bot is the orchestrator. projects.md lists bots. jobs.md tracks owner, budget, cost, and last result. A finished job appends worked, failed, and stop-doing to learnings/.
 - 2026-11-15: Each decision is its own file, decisions/YYYY-MM-DD-slug.md, with status, source, context, decision, and why. There is no decisions log.
+- 2026-11-15: `make setup` asks you to name your data repo and its owner. There is no built-in repository name. The choice is stored locally and is not committed.
+- 2026-11-15: A new company starts empty. Setup does not import existing data. `scripts/export-notion` and `scripts/import-granola` stay optional extras. `TODO.md` in the data repo is the fill-in list. `voice.md` counts are progress and do not fail CI while empty.
+- 2026-11-15: Design principles for every phase. One command walks setup. Optional installs stay in that command. TODO.md is what gets filled in. The company starts from scratch, and importing an existing company is deferred. The second brain starts as me/.

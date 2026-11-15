@@ -41,8 +41,15 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--root", type=Path)
     parser.add_argument("--format-only", action="store_true")
     parser.add_argument("--require-example", action="store_true")
+    parser.add_argument("--voice-progress", action="store_true")
     args = parser.parse_args(argv)
     root = (args.root or Path(__file__).resolve().parents[1]).resolve()
+    if args.voice_progress:
+        print(voice_progress_line(root))
+        return 0
+    progress = voice_progress_line(root)
+    if progress and not progress.endswith("missing"):
+        print(progress)
     errors = check(root, format_only=args.format_only, require_example=args.require_example)
     if errors:
         print(f"{len(errors)} problem(s):", file=sys.stderr)
@@ -137,17 +144,43 @@ def _fact_file(name: str, text: str, require_source: bool) -> list[str]:
     return errors
 
 
+VOICE_SECTIONS = ("Words you never use", "Your 50 best posts", "20 posts you hate")
+
+
+def voice_progress_line(root: Path) -> str:
+    path = root / "voice.md"
+    if not path.is_file():
+        return "voice.md: missing"
+    return format_voice_progress(path.read_text(encoding="utf-8"))
+
+
+def format_voice_progress(text: str) -> str:
+    """Count real entries. EXAMPLE lines are reported and do not count."""
+
+    sections = _sections(text)
+    best_real, best_example = _post_counts(sections.get("your 50 best posts", ""))
+    hated_real, hated_example = _post_counts(sections.get("20 posts you hate", ""))
+    banned = _plain_count(sections.get("words you never use", ""))
+    return (
+        "voice.md: "
+        + _progress("best posts", best_real, best_example, 50)
+        + ", "
+        + _progress("hated posts", hated_real, hated_example, 20)
+        + f", banned words {banned}"
+    )
+
+
 def _voice(text: str) -> list[str]:
     sections = _sections(text)
     errors = []
-    for heading in ("Banned words", "Best posts", "Hated posts"):
-        if heading.lower() not in sections:
+    for heading in VOICE_SECTIONS:
+        if heading.casefold() not in sections:
             errors.append(f"voice.md: missing section {heading}")
-    banned = sections.get("banned words", "")
+    banned = sections.get("words you never use", "")
     first = next((line for line in banned.splitlines() if line.startswith("- ")), "")
     if not first.lower().startswith("- em dash"):
         errors.append("voice.md: the first banned word must be the em dash")
-    for heading in ("best posts", "hated posts"):
+    for heading in ("your 50 best posts", "20 posts you hate"):
         for line in sections.get(heading, "").splitlines():
             if not line.startswith("- "):
                 continue
@@ -155,6 +188,30 @@ def _voice(text: str) -> list[str]:
             if match is None or not _date(match.group(1)):
                 errors.append(f"voice.md: post entry needs a date: {line}")
     return errors
+
+
+def _post_counts(section: str) -> tuple[int, int]:
+    real = 0
+    example = 0
+    for line in section.splitlines():
+        if POST_LINE.match(line) is None:
+            continue
+        if "EXAMPLE" in line:
+            example += 1
+        else:
+            real += 1
+    return real, example
+
+
+def _plain_count(section: str) -> int:
+    return sum(1 for line in section.splitlines() if line.startswith("- ") and "EXAMPLE" not in line)
+
+
+def _progress(label: str, real: int, example: int, target: int) -> str:
+    text = f"{label} {real}/{target}"
+    if example:
+        text += f" ({example} example)"
+    return text
 
 
 def _record(root: Path, relative: str, require_example: bool) -> list[str]:

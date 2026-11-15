@@ -1,7 +1,7 @@
 .PHONY: setup check intake ingest install-skills
 
 setup:
-	python3 scripts/bootstrap $(ARGS)
+	python3 scripts/setup $(ARGS)
 
 check:
 	python3 scripts/validate --selfcheck

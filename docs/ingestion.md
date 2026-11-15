@@ -1,6 +1,7 @@
 # Filing inbox notes
 
-From the public openco checkout, after `make setup`:
+Setup's voice-notes step sends you here. You do this after `make setup`,
+from the public openco checkout:
 
 ```bash
 python3 scripts/intake

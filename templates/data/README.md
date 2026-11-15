@@ -1,7 +1,8 @@
-# openco-data
+# Your data repo
 
-Private data for [openco](https://github.com/blake-raymond/openco). Keep this
-repository private. Do not push it to the public openco repository.
+Private notes for [openco](https://github.com/blake-raymond/openco). Setup
+creates this repository under the name you confirm. Keep it private. Do
+not push it to the public openco repository.
 
 Open this folder as an Obsidian vault. `.obsidian/` is the vault config.
 `me/` is how you think, write, and decide. The other folders are the
@@ -21,7 +22,8 @@ has been committed. CI rejects that.
 | `decisions/` | One file per decision: date, status, source, then context, decision, and why |
 | `facts.md` | One sayable fact per line, with a date and a source |
 | `stories.md` | Stories filed from notes |
-| `voice.md` | Best posts, hated posts, banned words |
+| `voice.md` | 50 best posts, 20 posts you hate, words you never use |
+| `TODO.md` | What still needs filling in, in playbook order |
 | `memory/` | Plain session memory, if you are not using another tool |
 | `learnings/` | What a finished job taught you |
 | `inbox/` | Notes waiting to be filed |

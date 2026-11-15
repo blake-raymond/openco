@@ -4,7 +4,7 @@ Source: Greg Isenberg, [Making the most AI pilled company is the whole game](htt
 
 **Phase 1 (steps 1–8) is in this repository.** Later phases are outlined so the next change has a place to land. They are not built.
 
-The brain is markdown in the private `openco-data` git repository. A future backend could replace the markdown files and git history. Phase 1 does not add one.
+The brain is markdown in your data repo. A future backend could replace the markdown files and git history. Phase 1 does not add one.
 
 ## Phase 1 — Brain, steps 1–8
 
@@ -12,33 +12,31 @@ The scaffold is here. `make setup` creates the private repo. `scripts/intake` fi
 
 | Step | What the playbook asks for | Where it lives |
 | --- | --- | --- |
-| 1 | A second brain: one folder of markdown on how you think, write, and decide (Obsidian). | Notion is the default (Commonplace book). `me/` is the markdown fallback, with `.obsidian/` so the data repo opens as a vault. `scripts/export-notion` snapshots pages to `me/notion/`. |
+| 1 | A second brain: one folder of markdown on how you think, write, and decide (Obsidian). | A new company fills `me/` from scratch. `.obsidian/` lets the data repo open as a vault. `scripts/export-notion` is an optional extra, not setup. |
 | 2 | Voice notes through the day. An agent files every fact, story, and decision. | `inbox/` plus `scripts/intake`, which opens a pull request. |
 | 3 | A company brain: customers, calls, numbers, pricing, playbooks, and past decisions with the reason. | `customers/`, `calls/`, `pricing.md`, `playbooks/`, `decisions/`. |
 | 4 | Record every call and meeting. Transcripts go straight into the brain. | Grok Bot is the primary recorder. A generic transcript drops into private `inbox/` or `calls/`. Full text stays in `calls/` and is not edited later. Granola is an optional importer. The public repo rejects a committed transcript. |
 | 5 | A facts file: the only company claims an agent is allowed to say. | `facts.md`, one dated line with a source. [AGENTS.md](AGENTS.md) requires a citation. |
-| 6 | A voice file: best posts (target 50), posts you hate (target 20), and words you never use. | `voice.md`. The em dash is the first banned word. The counts are the target, not a checker quota. |
-| 7 | Keep it in git so every change has history. | openco-data is its own git repo. Its CI blocks edits of past dated entries. This public repo's history is the setup only. |
+| 6 | A voice file: best posts (target 50), posts you hate (target 20), and words you never use. | `voice.md`. The em dash is the first banned word. The check prints the counts and does not fail CI while the lists are empty. |
+| 7 | Keep it in git so every change has history. | Your data repo is its own git repo. Its CI blocks edits of past dated entries. This public repo's history is the setup only. |
 | 8 | One instruction file. Read it before any task, never overwrite, always date. | [AGENTS.md](AGENTS.md), with [CLAUDE.md](CLAUDE.md) pointing at it. |
 
 The examples shipped in the skeleton are marked EXAMPLE. Replace nothing; append real dated entries in the private repo.
 
 ## Phase 2 — Brain and capture, steps 1–6, 9, and 11
 
-The repo side of these steps is in the phase 2 change: `templates/data`,
-the data-repo CI, `scripts/intake`, `scripts/import-granola`, and
-`docs/setup/`. What is still manual, or not verified by running the
-tool, is called out in those setup pages.
+`make setup` walks the built steps. A step that is not built is deferred
+inside that command. It is not a document you finish first.
 
-9. Give agents memory across sessions so they stop starting from zero. `memory/` is the memory for now. claude-mem and mem0 stay optional setup notes and were not run.
-10. Pipe ads, analytics, CRM, and payments into one warehouse agents can query (Airbyte into ClickHouse). Not built. It waits for real data.
-11. Feed that warehouse data nobody else has. That is the part a competitor cannot download. Intake is the route for notes and for Grok Bot transcripts. Granola remains optional. Keeping the folder fed is manual.
+9. Give agents memory across sessions so they stop starting from zero. `memory/` is the memory. claude-mem and mem0 are deferred. Setup does not install them.
+10. Pipe ads, analytics, CRM, and payments into one warehouse agents can query (Airbyte into ClickHouse). Not built. The wizard says so and does not ask you to install either tool.
+11. Feed that warehouse data nobody else has. Intake is the route for notes and for transcripts your agent writes. Importing an existing company is deferred. Filling the files is `TODO.md`.
 
 Step 10 stays later. Exports and warehouse credentials stay out of this public repo.
 
 ## Phase 3 — Skills, steps 12–21
 
-Not built, except the folder shape. This repo has `skills/example-make-tea/` as a fake shareable skill. openco-data has `skills/` for skills you are not publishing.
+Not built, except the folder shape. This repo has `skills/example-make-tea/` as a fake shareable skill. Your data repo has `skills/` for skills you are not publishing.
 
 12. Do not start from zero. Install public skill libraries first (anthropics/skills, obra/superpowers, mattpocock/skills, addyosmani/agent-skills).
 13. Add marketing skills too (coreyhaines31/marketingskills, Cody Schneider's graphed skills for static ads and UGC, boringmarketing skills).
@@ -51,11 +49,11 @@ Not built, except the folder shape. This repo has `skills/example-make-tea/` as 
 20. Give agents a computer of their own for tools with no API.
 21. Give the best skills away in public. That is the new lead magnet.
 
-Automation from this repo: skills stay files in git. A later `scripts/publish-skill` copies one skill from openco-data into `skills/` here after a human chooses to publish it. The workflow map is a dated log in the private repo, same append-only rule as the facts file.
+Automation from this repo: skills stay files in git. A later `scripts/publish-skill` copies one skill from your data repo into `skills/` here after a human chooses to publish it. The workflow map is a dated log in the private repo, same append-only rule as the facts file.
 
 ## Phase 4 — Agents, steps 22–30
 
-Not built. Configuration would be added under an `agents/` directory in this repo. Logs and budgets that contain real figures would append to openco-data.
+Not built. Configuration would be added under an `agents/` directory in this repo. Logs and budgets that contain real figures would append to your data repo.
 
 22. Run an orchestrator that stays on. It manages one agent per project, and each of those runs sub-agents.
 23. Use coding agents for the building.
@@ -71,7 +69,7 @@ Automation from this repo: checked-in config for the orchestrator, the routes, a
 
 ## Phase 5 — Factory, steps 31–37
 
-Not built. The build line would be GitHub Actions and scripts in this repo. The case library would live in openco-data so the cases can be real.
+Not built. The build line would be GitHub Actions and scripts in this repo. The case library would live in your data repo so the cases can be real.
 
 31. Build the line: spec, then builder agents in parallel git worktrees, then test, then review, then deploy.
 32. Send design through the same line, and use a skill to strip anything that looks generated.
@@ -96,7 +94,7 @@ Automation from this repo: scheduled GitHub Actions that only append dated entri
 
 ## Phase 7 — Growth, steps 42–49
 
-Not built. Scripts and published skills would be added here. Leads, ad accounts, and customer records stay in openco-data.
+Not built. Scripts and published skills would be added here. Leads, ad accounts, and customer records stay in your data repo.
 
 42. Research with agents before spending.
 43. Let outbound run: find the leads, enrich them, verify them, send.
