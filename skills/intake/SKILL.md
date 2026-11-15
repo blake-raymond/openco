@@ -19,7 +19,7 @@ A transcript (`kind: transcript`) is copied in full to `calls/YYYY-MM-DD-slug.md
 ## Checks
 
 - Every new fact line has a date and a source.
-- Every new decision file has `date`, `decision`, `why`, and `supersedes`.
+- Every new decision file is `decisions/YYYY-MM-DD-slug.md` with `date`, `status`, `source`, and sections Context, Decision, and Why.
 - A note marked EXAMPLE does not become a real company claim.
 
 ## Mistakes

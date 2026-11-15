@@ -99,9 +99,10 @@ def run_selfcheck() -> list[str]:
                 "- EXAMPLE: the demo call lasted 0 minutes.\n\n"
                 "## Decisions\n\n"
                 "### example-keep-window\n"
+                "status: proposed\n"
+                "context: EXAMPLE transcript.\n"
                 "decision: EXAMPLE keep the window\n"
-                "why: The fictional staff is only there then.\n"
-                "supersedes:\n",
+                "why: The fictional staff is only there then.\n",
                 encoding="utf-8",
             )
             result = subprocess.run(
@@ -138,6 +139,9 @@ def run_selfcheck() -> list[str]:
             decision = (dest / "decisions" / "2026-11-15-example-keep-window.md").read_text(encoding="utf-8")
             if "source: calls/2026-11-15-example-call.md" not in decision:
                 errors.append("intake did not link the decision back to the transcript")
+            for heading in ("## Context", "## Decision", "## Why"):
+                if heading not in decision:
+                    errors.append(f"decision file is missing {heading}")
             history = _run_check(["--root", str(dest)])
             if history:
                 errors.extend(history)

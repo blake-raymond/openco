@@ -16,8 +16,7 @@ EXAMPLE voice note. Not a real recording.
 ## Decisions
 
 ### example-keep-tea-time
+status: proposed
+context: EXAMPLE voice note, not a real recording.
 decision: EXAMPLE keep tea time
 why: The fictional staff takes a break then.
-supersedes:
-
-Keep the demo tea time at 16:00 example time.

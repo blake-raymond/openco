@@ -29,9 +29,10 @@ Sam Sample: That is the whole fictional meeting.
 ## Decisions
 
 ### keep-hours
+status: proposed
+context: The fictional staff is only there during that window.
 decision: Keep the demo phone window
 why: The fictional staff is only there during that window.
-supersedes:
 ```
 
 `date` is `YYYY-MM-DD`. `title` is one line. `kind` is `transcript`.
