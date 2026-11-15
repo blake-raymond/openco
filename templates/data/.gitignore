@@ -1,0 +1,7 @@
+.DS_Store
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+.obsidian/cache
+inbox/*.md
+!inbox/README.md
+!inbox/2026-11-15-example-morning-note.md
