@@ -54,6 +54,7 @@ def run_selfcheck() -> list[str]:
     if transcript_finding("docs/setup/calls.md", "---\nkind: transcript\n---\n") is not None:
         errors.append("privacy scan flagged the calls setup doc")
     errors.extend(_notion_checks())
+    errors.extend(_skill_from_recording_check())
     try:
         converted, _markdown = convert(_generic_transcript())
         if converted != "calls/2026-11-15-demo-call.md":
@@ -206,9 +207,56 @@ def _public_rules() -> list[str]:
         "docs/setup/granola.md",
         "docs/setup/memory.md",
         "docs/setup/notion-second-brain.md",
+        "docs/setup/mcp.md",
+        "docs/setup/calls.md",
     ):
         if not (ROOT / relative).is_file():
             errors.append(f"{relative} is missing")
+    errors.extend(_phase3_files())
+    return errors
+
+
+def _phase3_files() -> list[str]:
+    import json
+
+    from openco.install_skills import load_lock
+    from openco.scan import scan_text
+
+    errors: list[str] = []
+    try:
+        load_lock()
+    except OpencoError as exc:
+        errors.append(str(exc))
+    mcp_path = ROOT / "config" / "mcp.example.json"
+    if not mcp_path.is_file():
+        errors.append("config/mcp.example.json is missing")
+    else:
+        raw = mcp_path.read_text(encoding="utf-8")
+        errors.extend(scan_text(str(mcp_path), raw))
+        try:
+            servers = json.loads(raw).get("mcpServers", {})
+        except json.JSONDecodeError:
+            errors.append("config/mcp.example.json is not JSON")
+            servers = {}
+        for name, server in servers.items():
+            for key, value in (server.get("env") or {}).items():
+                if value not in ("", None):
+                    errors.append(f"config/mcp.example.json: {name}.{key} is not empty")
+    skill = (ROOT / "skills" / "skill-from-recording" / "SKILL.md").read_text(encoding="utf-8")
+    for heading in ("When to use", "Steps", "Checks", "Mistakes"):
+        if f"## {heading}" not in skill and heading not in skill:
+            errors.append(f"skill-from-recording is missing {heading}")
+    for path in (ROOT / "routines").glob("*.md"):
+        if path.name == "README.md":
+            continue
+        text = path.read_text(encoding="utf-8")
+        if "schedule:" not in text or "trigger:" not in text or "# Prompt" not in text:
+            errors.append(f"{path.name}: a routine needs schedule, trigger, and a prompt")
+    for relative in ("tools/TEMPLATE.md", ".github/ISSUE_TEMPLATE/annoyance.md"):
+        if not (ROOT / relative).is_file():
+            errors.append(f"{relative} is missing")
+    if "what worked" not in (ROOT / "AGENTS.md").read_text(encoding="utf-8"):
+        errors.append("AGENTS.md does not tell a finished job to record what worked")
     return errors
 
 
@@ -307,6 +355,61 @@ def _notion_snapshot_is_editable(dest: Path) -> list[str]:
         else:
             os.environ["BASE_REF"] = previous
     return [item for item in problems if "me/notion" in item]
+
+
+def _skill_from_recording_check() -> list[str]:
+    from openco.skill_from_recording import render_skill
+
+    errors: list[str] = []
+    try:
+        render_skill("# raw\n\nSomeone talked.\n", "file-note", "note.md")
+    except OpencoError:
+        pass
+    else:
+        errors.append("skill-from-recording accepted a recording with no sections")
+    with tempfile.TemporaryDirectory() as tmp:
+        dest = Path(tmp) / "data"
+        dest.mkdir()
+        subprocess.run(["git", "init", "-b", "main", str(dest)], check=True, capture_output=True)
+        subprocess.run(["git", "config", "user.email", "openco-setup@example.com"], cwd=dest, check=True)
+        subprocess.run(["git", "config", "user.name", "openco setup"], cwd=dest, check=True)
+        subprocess.run(["git", "config", "commit.gpgsign", "false"], cwd=dest, check=True)
+        (dest / "README.md").write_text("data\n", encoding="utf-8")
+        subprocess.run(["git", "add", "README.md"], cwd=dest, check=True)
+        subprocess.run(["git", "commit", "-m", "init"], cwd=dest, check=True, capture_output=True)
+        recording = Path(tmp) / "2026-11-15-file-a-note.md"
+        recording.write_text(
+            "## When to use\nA note is in the inbox.\n"
+            "## Steps\n1. File it.\n"
+            "## Checks\nThe fact has a source.\n"
+            "## Mistakes\nDo not invent a fact.\n",
+            encoding="utf-8",
+        )
+        result = subprocess.run(
+            [
+                sys.executable,
+                str(ROOT / "scripts" / "skill-from-recording"),
+                str(recording),
+                "--name",
+                "file-a-note",
+                "--data-repo",
+                str(dest),
+                "--no-pr",
+            ],
+            text=True,
+            capture_output=True,
+        )
+        if result.returncode != 0:
+            errors.append(result.stderr.strip() or "skill-from-recording failed")
+            return errors
+        branch = subprocess.check_output(["git", "rev-parse", "--abbrev-ref", "HEAD"], cwd=dest, text=True).strip()
+        if branch in {"main", "master"}:
+            errors.append("skill-from-recording committed on main")
+        text = (dest / "skills" / "file-a-note" / "SKILL.md").read_text(encoding="utf-8")
+        for heading in ("When to use", "Steps", "Checks", "Mistakes"):
+            if f"## {heading}" not in text:
+                errors.append(f"generated skill is missing {heading}")
+    return errors
 
 
 def _generic_transcript() -> str:

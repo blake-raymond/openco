@@ -7,3 +7,7 @@ __pycache__/
 .DS_Store
 /.obsidian/
 *.pem
+skills/vendor/*
+!skills/vendor/README.md
+!skills/vendor/lock.json
+!skills/vendor/.gitignore
