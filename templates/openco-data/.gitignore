@@ -1,0 +1,6 @@
+.DS_Store
+.obsidian/
+inbox/voice-notes/*
+!inbox/voice-notes/.gitkeep
+inbox/transcripts/*
+!inbox/transcripts/.gitkeep
