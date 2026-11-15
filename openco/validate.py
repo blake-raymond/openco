@@ -49,6 +49,7 @@ def run_selfcheck() -> list[str]:
         errors.append("scanner flagged an example.com address")
     if not scan_text("sample.txt", "write to person@" + "realco.test\n"):
         errors.append("scanner missed a non-example address")
+    errors.extend(_notion_checks())
     try:
         converted, _markdown = convert(_generic_transcript())
         if converted != "calls/2026-11-15-demo-call.md":
@@ -115,6 +116,7 @@ def run_selfcheck() -> list[str]:
             (dest / "facts.md").write_text(original, encoding="utf-8")
             if not any("append-only" in item for item in edited):
                 errors.append("data check allowed an edit to an old fact")
+            errors.extend(_notion_snapshot_is_editable(dest))
             recorded = gh_log.read_text(encoding="utf-8") if gh_log.is_file() else ""
             if "--base" not in recorded or "main" not in recorded:
                 errors.append("intake did not ask gh to open a pull request against main")
@@ -157,7 +159,7 @@ def _public_rules() -> list[str]:
     roadmap = (ROOT / "ROADMAP.md").read_text(encoding="utf-8")
     if "AGENTS.md" not in claude:
         errors.append("CLAUDE.md must point at AGENTS.md")
-    for phrase in ("before any task", "Do not overwrite", "facts.md", "EXAMPLE"):
+    for phrase in ("before any task", "Do not overwrite", "facts.md", "EXAMPLE", "without approval"):
         if phrase not in agents:
             errors.append(f"AGENTS.md is missing {phrase!r}")
     for phrase in ("openco-data", "blake-raymond/openco", "templates/data"):
@@ -169,10 +171,112 @@ def _public_rules() -> list[str]:
     skill = ROOT / "skills" / "intake" / "SKILL.md"
     if not skill.is_file():
         errors.append("skills/intake/SKILL.md is missing")
-    for relative in ("docs/setup/wispr.md", "docs/setup/granola.md", "docs/setup/memory.md"):
+    for relative in (
+        "docs/setup/wispr.md",
+        "docs/setup/granola.md",
+        "docs/setup/memory.md",
+        "docs/setup/notion-second-brain.md",
+    ):
         if not (ROOT / relative).is_file():
             errors.append(f"{relative} is missing")
     return errors
+
+
+def _notion_checks() -> list[str]:
+    from openco.notion_export import export_database
+    from openco.second_brain import source
+
+    errors: list[str] = []
+    saved = {key: os.environ.get(key) for key in ("SECOND_BRAIN", "NOTION_TOKEN", "NOTION_SECOND_BRAIN_DB")}
+    try:
+        os.environ["SECOND_BRAIN"] = "notion"
+        os.environ["NOTION_TOKEN"] = ""
+        os.environ["NOTION_SECOND_BRAIN_DB"] = ""
+        if not (ROOT / ".env").is_file() and source() != "markdown":
+            errors.append("second brain did not fall back to markdown without Notion")
+        os.environ["NOTION_TOKEN"] = "test-token"
+        os.environ["NOTION_SECOND_BRAIN_DB"] = "database"
+        if source() != "notion":
+            errors.append("second brain did not use Notion when configured")
+        os.environ["SECOND_BRAIN"] = "markdown"
+        if source() != "markdown":
+            errors.append("SECOND_BRAIN=markdown was ignored")
+    finally:
+        for key, value in saved.items():
+            if value is None:
+                os.environ.pop(key, None)
+            else:
+                os.environ[key] = value
+    calls: list[str] = []
+
+    def transport(method: str, path: str, body: dict | None) -> dict:
+        calls.append(method + " " + path.split("?", 1)[0])
+        if method == "GET" and path.startswith("/v1/databases/"):
+            return {"data_sources": [{"id": "source-1", "name": "Commonplace book"}]}
+        if method == "POST" and path.endswith("/query"):
+            return {
+                "has_more": False,
+                "next_cursor": None,
+                "results": [
+                    {
+                        "object": "page",
+                        "id": "page-1",
+                        "properties": {
+                            "Name": {"type": "title", "title": [{"plain_text": "How I decide"}]}
+                        },
+                    }
+                ],
+            }
+        if method == "GET" and "/children" in path:
+            return {
+                "has_more": False,
+                "next_cursor": None,
+                "results": [
+                    {
+                        "id": "block-1",
+                        "type": "paragraph",
+                        "has_children": False,
+                        "paragraph": {"rich_text": [{"plain_text": "Reversible when waiting is cheap."}]},
+                    }
+                ],
+            }
+        raise OpencoError(f"unexpected Notion call {method} {path}")
+
+    with tempfile.TemporaryDirectory() as tmp:
+        written = export_database(Path(tmp), "database", transport)
+        text = (Path(tmp) / written[0]).read_text(encoding="utf-8")
+        if "Reversible when waiting is cheap." not in text:
+            errors.append("notion export dropped the page body")
+        if any(call.startswith("PATCH") or call.startswith("DELETE") or call.startswith("PUT") for call in calls):
+            errors.append("notion export used a write method")
+        if not any(call.startswith("GET /v1/databases/") for call in calls):
+            errors.append("notion export did not retrieve the database")
+        if not any(call == "POST /v1/data_sources/source-1/query" for call in calls):
+            errors.append("notion export did not query the data source")
+    return errors
+
+
+def _notion_snapshot_is_editable(dest: Path) -> list[str]:
+    subprocess.run(["git", "checkout", "main"], cwd=dest, check=True, capture_output=True)
+    snapshot = dest / "me" / "notion" / "snapshot.md"
+    snapshot.parent.mkdir(parents=True, exist_ok=True)
+    snapshot.write_text("---\nsource: notion\n---\n\n# EXAMPLE\n\nFirst.\n", encoding="utf-8")
+    subprocess.run(["git", "add", "me/notion/snapshot.md"], cwd=dest, check=True)
+    subprocess.run(["git", "commit", "-m", "Add notion snapshot"], cwd=dest, check=True, capture_output=True)
+    subprocess.run(["git", "checkout", "-b", "notion-update"], cwd=dest, check=True, capture_output=True)
+    snapshot.write_text("---\nsource: notion\n---\n\n# EXAMPLE\n\nUpdated.\n", encoding="utf-8")
+    subprocess.run(["git", "add", "me/notion/snapshot.md"], cwd=dest, check=True)
+    subprocess.run(["git", "commit", "-m", "Update notion snapshot"], cwd=dest, check=True, capture_output=True)
+    previous = os.environ.get("BASE_REF")
+    os.environ["BASE_REF"] = "main"
+    try:
+        problems = _run_check(["--root", str(dest)])
+    finally:
+        if previous is None:
+            os.environ.pop("BASE_REF", None)
+        else:
+            os.environ["BASE_REF"] = previous
+    return [item for item in problems if "me/notion" in item]
 
 
 def _generic_transcript() -> str:

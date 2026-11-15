@@ -81,7 +81,7 @@ def check_history(root: Path) -> list[str]:
         if not _is_growing(old, new_path.read_text(encoding="utf-8")):
             errors.append(f"{name}: append-only violation; an existing line was edited or removed")
     for relative in _records(root):
-        if relative.startswith("inbox/"):
+        if _exempt(relative):
             continue
         old = _show(root, base, relative)
         if old is None:
@@ -91,7 +91,7 @@ def check_history(root: Path) -> list[str]:
             errors.append(f"{relative}: existing entry was edited")
     old_records = _records_at(root, base)
     for relative in old_records:
-        if relative.startswith("inbox/"):
+        if _exempt(relative):
             continue
         if not (root / relative).is_file():
             errors.append(f"{relative}: deleted; add a new dated entry instead")
@@ -183,7 +183,10 @@ def _records(root: Path) -> list[str]:
         if not folder.is_dir():
             continue
         for path in sorted(folder.rglob("*.md")):
-            found.append(path.relative_to(root).as_posix())
+            relative = path.relative_to(root).as_posix()
+            if relative.startswith("me/notion/"):
+                continue
+            found.append(relative)
     return found
 
 
@@ -196,6 +199,8 @@ def _records_at(root: Path, base: str) -> list[str]:
         if not line.endswith(".md"):
             continue
         for directory in RECORD_DIRS:
+            if line.startswith("me/notion/"):
+                continue
             if line.startswith(directory + "/") and not line.endswith("/README.md"):
                 found.append(line)
     return found
@@ -241,6 +246,12 @@ def _date(value: str) -> bool:
     except ValueError:
         return False
     return True
+
+
+def _exempt(relative: str) -> bool:
+    """Inbox moves and Notion snapshots are not dated entries."""
+
+    return relative.startswith("inbox/") or relative.startswith("me/notion/")
 
 
 def _norm(text: str) -> str:

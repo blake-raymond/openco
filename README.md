@@ -44,7 +44,9 @@ create a **private** repository, push `main` once, and add it as
 `origin`. See [docs/private-data.md](docs/private-data.md).
 
 Open the private repo folder as an Obsidian vault. `.obsidian/` is
-already there. `me/` is how you think, write, and decide.
+already there. The second brain defaults to a Notion database (the
+Commonplace book, for this setup). `me/` is the fallback when Notion
+is not configured. See [docs/setup/notion-second-brain.md](docs/setup/notion-second-brain.md).
 
 ## File a note
 

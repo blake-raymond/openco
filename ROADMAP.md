@@ -12,7 +12,7 @@ The scaffold is here. `make setup` creates the private repo. `scripts/intake` fi
 
 | Step | What the playbook asks for | Where it lives |
 | --- | --- | --- |
-| 1 | A second brain: one folder of markdown on how you think, write, and decide (Obsidian). | `me/` in openco-data, and `.obsidian/` so the repo opens as a vault. |
+| 1 | A second brain: one folder of markdown on how you think, write, and decide (Obsidian). | Notion is the default (Commonplace book). `me/` is the markdown fallback, with `.obsidian/` so the data repo opens as a vault. `scripts/export-notion` snapshots pages to `me/notion/`. |
 | 2 | Voice notes through the day. An agent files every fact, story, and decision. | `inbox/` plus `scripts/intake`, which opens a pull request. |
 | 3 | A company brain: customers, calls, numbers, pricing, playbooks, and past decisions with the reason. | `customers/`, `calls/`, `pricing.md`, `playbooks/`, `decisions/`. |
 | 4 | Record every call and meeting. Transcripts go straight into the brain. | `scripts/import-granola` writes `calls/`. The CSV column names are not documented, so the script takes a generic transcript. |

@@ -21,6 +21,19 @@ Before a task that touches the company, read:
 - the latest file in `memory/` when you need the last session
 - [docs/ingestion.md](docs/ingestion.md) when the task files an inbox note
 
+## Second brain
+
+The second brain is a Notion database. Here that database is the
+Commonplace book. Before a task about how Blake thinks, writes, or
+decides, read it through the Notion MCP or the Notion API. Never edit
+it without approval.
+
+If `NOTION_TOKEN` and `NOTION_SECOND_BRAIN_DB` are unset, or
+`SECOND_BRAIN=markdown`, read `me/` in the private data repo instead.
+The notes shipped in `me/` are examples, not the Commonplace book.
+`scripts/export-notion` only reads Notion and writes a snapshot under
+`me/notion/`. See [docs/setup/notion-second-brain.md](docs/setup/notion-second-brain.md).
+
 Entries marked EXAMPLE are fake. Do not cite one as a company fact.
 
 ## Claims
@@ -83,3 +96,4 @@ earlier line.
 
 - 2026-11-15: Initial phase 1 instructions. The brain is markdown in the private git repo. This public repo is the setup and the checks.
 - 2026-11-15: Phase 2 layout. Facts are lines in facts.md. Decisions are files under decisions/ with date, decision, why, and supersedes. Intake opens a pull request and does not commit to main.
+- 2026-11-15: The second brain defaults to the Notion Commonplace book. `me/` is the fallback. Snapshot updates under `me/notion/` are allowed. Do not edit Notion without approval.
