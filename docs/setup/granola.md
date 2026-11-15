@@ -1,7 +1,15 @@
 # Granola
 
-Setup does not install Granola. Grok Bot is the recorder you use.
-Granola is optional.
+`make setup` can install Granola, or you can use your agent and drop
+transcripts in `calls/`. The install is opt-in. On macOS, when `brew`
+is installed, the verified command is `brew install --cask granola`
+(Homebrew cask `granola`, checked 2026-11-15, macOS only). Every other
+OS gets the official download page, https://www.granola.ai/download.
+There is no verified Linux package.
+
+`scripts/import-granola` is an optional extra for a transcript you
+already have. It is not part of setup, and a new company does not
+start by importing one.
 
 If you already have an export, `scripts/import-granola` can turn a
 generic transcript into `calls/YYYY-MM-DD-slug.md` in your data repo.

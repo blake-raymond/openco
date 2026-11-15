@@ -1,8 +1,8 @@
 # Calls
 
-Setup tells you this in one line and does not install a recorder.
-Grok Bot is the one that joins meetings. You drop the transcript it
-writes into your data repo.
+Setup asks whether to install Granola or to use your agent. Your agent
+is the path that installs nothing. You drop the transcript it writes
+into your data repo. A new company does not start by importing old calls.
 
 The full raw transcript stays only in your data repo, under `calls/`,
 as `YYYY-MM-DD-slug.md`. Do not edit it after it is committed. Do not

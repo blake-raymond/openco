@@ -1,7 +1,13 @@
 # Wispr Flow
 
-Setup does not install Wispr. You use it when you want voice notes,
-then you drop the markdown into your data repo.
+`make setup` offers to install Wispr Flow. The install is opt-in. On
+macOS, when `brew` is installed, the verified command is
+`brew install --cask wispr-flow` (Homebrew cask `wispr-flow`, checked
+2026-11-15, macOS only). Linux has no verified package. The official
+docs say there is no native Linux app. Other systems get
+https://wisprflow.ai/downloads.
+
+You drop the markdown into your data repo.
 
 The iOS help page, read on 15 Nov 2026, says Copy and Share send raw
 Markdown. It does not write into a git folder.

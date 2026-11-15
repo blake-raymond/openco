@@ -127,3 +127,4 @@ earlier line.
 - 2026-11-15: Grok Bot is the orchestrator. projects.md lists bots. jobs.md tracks owner, budget, cost, and last result. A finished job appends worked, failed, and stop-doing to learnings/.
 - 2026-11-15: Each decision is its own file, decisions/YYYY-MM-DD-slug.md, with status, source, context, decision, and why. There is no decisions log.
 - 2026-11-15: `make setup` asks you to name your data repo and its owner. There is no built-in repository name. The choice is stored locally and is not committed.
+- 2026-11-15: A new company starts empty. Setup does not import existing data. `scripts/export-notion` and `scripts/import-granola` stay optional extras. `TODO.md` in the data repo is the fill-in list. `voice.md` counts are progress and do not fail CI while empty.

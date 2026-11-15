@@ -12,12 +12,12 @@ The scaffold is here. `make setup` creates the private repo. `scripts/intake` fi
 
 | Step | What the playbook asks for | Where it lives |
 | --- | --- | --- |
-| 1 | A second brain: one folder of markdown on how you think, write, and decide (Obsidian). | Notion is the default (Commonplace book). `me/` is the markdown fallback, with `.obsidian/` so the data repo opens as a vault. `scripts/export-notion` snapshots pages to `me/notion/`. |
+| 1 | A second brain: one folder of markdown on how you think, write, and decide (Obsidian). | A new company fills `me/` from scratch. `.obsidian/` lets the data repo open as a vault. `scripts/export-notion` is an optional extra, not setup. |
 | 2 | Voice notes through the day. An agent files every fact, story, and decision. | `inbox/` plus `scripts/intake`, which opens a pull request. |
 | 3 | A company brain: customers, calls, numbers, pricing, playbooks, and past decisions with the reason. | `customers/`, `calls/`, `pricing.md`, `playbooks/`, `decisions/`. |
 | 4 | Record every call and meeting. Transcripts go straight into the brain. | Grok Bot is the primary recorder. A generic transcript drops into private `inbox/` or `calls/`. Full text stays in `calls/` and is not edited later. Granola is an optional importer. The public repo rejects a committed transcript. |
 | 5 | A facts file: the only company claims an agent is allowed to say. | `facts.md`, one dated line with a source. [AGENTS.md](AGENTS.md) requires a citation. |
-| 6 | A voice file: best posts (target 50), posts you hate (target 20), and words you never use. | `voice.md`. The em dash is the first banned word. The counts are the target, not a checker quota. |
+| 6 | A voice file: best posts (target 50), posts you hate (target 20), and words you never use. | `voice.md`. The em dash is the first banned word. The check prints the counts and does not fail CI while the lists are empty. |
 | 7 | Keep it in git so every change has history. | Your data repo is its own git repo. Its CI blocks edits of past dated entries. This public repo's history is the setup only. |
 | 8 | One instruction file. Read it before any task, never overwrite, always date. | [AGENTS.md](AGENTS.md), with [CLAUDE.md](CLAUDE.md) pointing at it. |
 

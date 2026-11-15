@@ -1,7 +1,8 @@
 # Your data repo
 
 The public openco repository is safe to clone. Your notes go in the
-private repository you name when you run `make setup`.
+private repository you name when you run `make setup`. That repository
+starts empty. Setup does not import an existing company.
 
 Setup creates that GitHub repository as private, copies the template,
 adds the remote, pushes, and enables checks. You do not create the

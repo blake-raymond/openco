@@ -14,9 +14,13 @@ make setup
 
 That one command checks git, Python, and `gh auth status`, asks you to
 confirm the owner and name of your data repo, creates it private on
-GitHub, copies the template, pushes, and turns on checks. Then it offers
-Notion, calls, memory, skill packs, and MCP. Run it again to resume.
-`make setup ARGS="--check"` shows what is done and what is missing.
+GitHub, copies the template, pushes, and turns on checks. The company
+starts empty. Setup does not import an existing company.
+`scripts/export-notion` and `scripts/import-granola` stay optional extras.
+Then it offers Obsidian, Wispr Flow, and Granola or your agent, each
+only if you say yes, then memory, skill packs, and MCP. Run it again to
+resume. `make setup ARGS="--check"` shows what is done, what is missing,
+and the TODO list in your data repo.
 
 The rest of this file is reference.
 
@@ -44,9 +48,10 @@ transcript committed here.
 
 `memory/` is the memory. [docs/setup/memory.md](docs/setup/memory.md)
 keeps claude-mem and mem0 as optional notes that were not verified.
-Wispr setup is [docs/setup/wispr.md](docs/setup/wispr.md). Granola is an
-optional importer, [docs/setup/granola.md](docs/setup/granola.md), not
-the default.
+Wispr Flow is the voice-notes app setup can install on macOS.
+[docs/setup/wispr.md](docs/setup/wispr.md). Granola is an optional call
+recorder, or you use your agent. The importer is not part of setup.
+[docs/setup/granola.md](docs/setup/granola.md).
 
 ## Rules agents follow
 
